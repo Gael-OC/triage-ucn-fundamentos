@@ -807,12 +807,241 @@ body.presenting .tool-section .tool-scroll-inner::-webkit-scrollbar-thumb { disp
 .case-summary .case-row strong { color: var(--slate-700); font-weight: 600; font-size: 0.78rem; }
 .case-summary .case-row span { color: var(--navy); font-weight: 600; font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 0.78rem; text-align: right; }
 
+.sim-shell { padding: 22px 22px 20px; }
+.sim-intro { font-size: 0.86rem; color: var(--slate-500); line-height: 1.55; margin-bottom: 18px; max-width: 72ch; }
+.sim-intro strong { color: var(--slate-700); font-weight: 600; }
+
+.sim-status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+.sim-status-item { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.sim-status-label { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-400); }
+.sim-status-value { font-size: 0.95rem; font-weight: 700; color: var(--navy); font-family: var(--serif); letter-spacing: -0.01em; }
+.sim-status-value.mono { font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 0.9rem; }
+.sim-verdict-pending { color: var(--slate-400); font-weight: 500; font-size: 0.85rem; }
+.sim-verdict-accepted { color: #047857; background: var(--emerald-50); padding: 2px 9px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700; }
+.sim-verdict-rejected { color: #b91c1c; background: var(--red-50); padding: 2px 9px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700; }
+.sim-verdict-running { color: var(--blue-700); background: var(--blue-50); padding: 2px 9px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700; }
+
+.sim-tape-wrap { position: relative; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 28px 16px 32px; margin-bottom: 18px; overflow: hidden; }
+.sim-tape { display: flex; gap: 3px; align-items: center; overflow-x: auto; overflow-y: hidden; padding: 14px 8px 18px; scroll-behavior: smooth; min-height: 78px; }
+.sim-tape::-webkit-scrollbar { height: 6px; }
+.sim-tape::-webkit-scrollbar-track { background: var(--slate-100); border-radius: 3px; }
+.sim-tape::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
+.sim-cell { flex: 0 0 auto; min-width: 38px; height: 50px; display: flex; align-items: center; justify-content: center; font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 1.05rem; font-weight: 700; color: var(--slate-700); background: white; border: 1.5px solid var(--slate-200); border-radius: 6px; transition: all 0.35s var(--ease-out); position: relative; }
+.sim-cell.delim { background: var(--slate-100); color: var(--slate-400); font-weight: 600; }
+.sim-cell.read { background: var(--navy); color: white; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(10, 25, 41, 0.08); transform: translateY(-2px); }
+.sim-cell.read.delim { background: var(--slate-700); color: white; border-color: var(--slate-700); }
+.sim-cell.passed { background: var(--emerald-50); color: #047857; border-color: #6ee7b7; }
+.sim-cell.passed.delim { background: var(--slate-100); color: #047857; border-color: #6ee7b7; }
+.sim-cell.rejected { background: var(--red-50); color: #b91c1c; border-color: #fca5a5; }
+.sim-cell.rejected.delim { background: var(--slate-100); color: #b91c1c; border-color: #fca5a5; }
+.sim-tape-head { position: absolute; top: 6px; left: 0; color: var(--navy); transition: transform 0.45s var(--ease-out); pointer-events: none; z-index: 2; transform: translateX(0); }
+.sim-tape-head svg { display: block; }
+
+.sim-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 22px; padding: 12px 14px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-md); }
+.sim-btn { padding: 8px 14px; font-size: 0.78rem; }
+.sim-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+.sim-speed { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 0.72rem; color: var(--slate-500); }
+.sim-speed input[type="range"] { width: 110px; accent-color: var(--blue-500); cursor: pointer; }
+
+.sim-states { display: flex; flex-direction: column; gap: 10px; }
+.sim-states-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-400); }
+.sim-states-grid { display: flex; flex-wrap: wrap; gap: 5px; padding: 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-md); min-height: 50px; }
+.sim-state-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: white; border: 1.5px solid var(--slate-200); border-radius: var(--radius-pill); font-family: 'SF Mono', monospace; font-size: 0.74rem; font-weight: 600; color: var(--slate-500); transition: all 0.3s var(--ease-spring); }
+.sim-state-chip.final { border-color: var(--emerald-400); color: #047857; }
+.sim-state-chip.active { background: var(--navy); border-color: var(--navy); color: white; transform: scale(1.08); box-shadow: 0 2px 8px rgba(10,25,41,0.2); }
+.sim-state-chip.active.final { background: var(--emerald-500); border-color: var(--emerald-500); }
+.sim-state-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+.sim-states-empty { font-size: 0.78rem; color: var(--slate-400); font-style: italic; padding: 4px; }
+
+.sim-trace { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+.sim-trace::-webkit-scrollbar { width: 5px; }
+.sim-trace::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
+.sim-trace-empty { font-size: 0.82rem; color: var(--slate-400); font-style: italic; padding: 12px 14px; background: var(--slate-50); border-radius: var(--radius-sm); text-align: center; }
+.sim-trace-row { display: grid; grid-template-columns: 42px 1fr 28px; gap: 10px; align-items: center; padding: 8px 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius-sm); font-size: 0.76rem; transition: all 0.3s var(--ease-out); }
+.sim-trace-row.current { background: var(--blue-50); border-color: var(--blue-400); }
+.sim-trace-row.rejected { background: var(--red-50); border-color: #fca5a5; }
+.sim-trace-row.accepted { background: var(--emerald-50); border-color: #6ee7b7; }
+.sim-trace-step { font-family: var(--serif); font-weight: 700; color: var(--navy); font-size: 0.85rem; }
+.sim-trace-msg { color: var(--slate-600); line-height: 1.45; }
+.sim-trace-msg code { font-family: 'SF Mono', monospace; background: white; padding: 1px 5px; border-radius: 3px; color: var(--navy); font-size: 0.72rem; border: 1px solid var(--slate-200); }
+.sim-trace-icon { font-size: 0.7rem; font-weight: 700; text-align: center; }
+.sim-trace-icon.ok { color: #047857; }
+.sim-trace-icon.no { color: #b91c1c; }
+.sim-trace-icon.run { color: var(--blue-600); }
+
+/* ===== MÁQUINA DE TURING INTERACTIVA ===== */
+.tm-section { position: relative; background: var(--slate-50); border-top: 1px solid var(--slate-200); padding: 80px 32px 100px; overflow: hidden; }
+.tm-bg-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; pointer-events: none; z-index: 0; }
+.tm-bg-orb-1 { top: -120px; right: -80px; width: 380px; height: 380px; background: radial-gradient(circle, rgba(59,130,246,0.4), transparent 70%); }
+.tm-bg-orb-2 { bottom: -160px; left: -100px; width: 460px; height: 460px; background: radial-gradient(circle, rgba(16,185,129,0.3), transparent 70%); }
+
+.tm-intro { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto 40px; text-align: center; }
+.tm-intro h2 { font-family: var(--serif); font-size: clamp(2rem, 3.4vw, 2.8rem); font-weight: 600; color: var(--navy); margin: 12px 0 12px; letter-spacing: -0.02em; }
+.tm-intro p { color: var(--slate-500); max-width: 56ch; margin: 0 auto; }
+
+.tm-form-grid { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; align-items: start; }
+.tm-launch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--slate-100); }
+.tm-launch { margin-left: auto; }
+.tm-launch svg { transition: transform 0.4s var(--ease-out); }
+.tm-launch:hover svg { transform: translateX(4px); }
+
+/* ===== MODAL MÁQUINA ===== */
+.tm-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.tm-modal[hidden] { display: none; }
+.tm-modal-bg { position: absolute; inset: 0; background: rgba(10, 25, 41, 0.78); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); animation: tmFade 0.5s var(--ease-out) both; }
+.tm-modal-shell { position: relative; width: min(1320px, 100%); max-height: calc(100dvh - 48px); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08); overflow: hidden; display: flex; flex-direction: column; animation: tmScale 0.55s var(--ease-out) both; }
+.tm-modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 28px 18px; border-bottom: 1px solid var(--slate-100); }
+.tm-modal-eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue-600); }
+.tm-modal-header h3 { font-family: var(--serif); font-size: 1.35rem; font-weight: 600; color: var(--navy); margin-top: 4px; letter-spacing: -0.01em; }
+.tm-modal-close { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--slate-200); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s var(--ease-out); color: var(--slate-500); }
+.tm-modal-close:hover { background: var(--slate-900); color: white; border-color: var(--slate-900); transform: rotate(90deg); }
+.tm-modal-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+.tm-modal-body { flex: 1; display: grid; grid-template-columns: 1fr 320px; gap: 0; min-height: 0; }
+
+.tm-stage { padding: 24px 28px 24px; display: flex; flex-direction: column; gap: 18px; min-height: 0; overflow: hidden; }
+
+/* ===== CINTA TRANSPORTADORA ===== */
+.tm-conveyor { position: relative; background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); border-radius: 18px; padding: 64px 0 56px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 4px 24px rgba(0,0,0,0.4); flex-shrink: 0; }
+.tm-conveyor::before, .tm-conveyor::after { content: ''; position: absolute; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); }
+.tm-conveyor::before { top: 14px; }
+.tm-conveyor::after { bottom: 14px; }
+
+.tm-tape { display: flex; gap: 4px; align-items: center; overflow-x: auto; overflow-y: hidden; padding: 16px 90px; scroll-behavior: smooth; min-height: 86px; mask-image: linear-gradient(90deg, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%); -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%); }
+.tm-tape::-webkit-scrollbar { display: none; }
+.tm-tape::-webkit-scrollbar-track, .tm-tape::-webkit-scrollbar-thumb { display: none; }
+
+.sim-cell { flex: 0 0 auto; min-width: 46px; height: 56px; display: flex; align-items: center; justify-content: center; font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: #e2e8f0; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 8px; transition: all 0.4s var(--ease-out); position: relative; backdrop-filter: blur(4px); }
+.sim-cell.delim { color: #64748b; background: rgba(255,255,255,0.02); border-style: dashed; }
+.sim-cell.read { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-color: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,0.2), 0 0 24px rgba(59,130,246,0.5); transform: scale(1.08); z-index: 3; }
+.sim-cell.read.delim { background: linear-gradient(135deg, #475569, #334155); border-color: #94a3b8; box-shadow: 0 0 0 4px rgba(148,163,184,0.2); }
+.sim-cell.passed { background: rgba(16,185,129,0.12); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+.sim-cell.passed.delim { color: #34d399; background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.25); }
+.sim-cell.rejected { background: rgba(239,68,68,0.18); color: #fca5a5; border-color: rgba(239,68,68,0.5); animation: tmShake 0.4s var(--ease-out); }
+.sim-cell.rejected.delim { color: #fca5a5; }
+
+.tm-roller { position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #475569, #1e293b 70%); box-shadow: 0 4px 16px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.08); z-index: 4; display: flex; align-items: center; justify-content: center; animation: tmSpin 4s linear infinite; }
+.tm-roller-left { left: 14px; }
+.tm-roller-right { right: 14px; }
+.tm-roller-spoke { position: absolute; width: 2px; height: 100%; background: rgba(255,255,255,0.15); }
+.tm-roller-spoke:nth-child(1) { transform: rotate(0deg); }
+.tm-roller-spoke:nth-child(2) { transform: rotate(30deg); }
+.tm-roller-spoke:nth-child(3) { transform: rotate(60deg); }
+.tm-roller-spoke:nth-child(4) { transform: rotate(90deg); }
+.tm-roller-spoke:nth-child(5) { transform: rotate(120deg); }
+.tm-roller-spoke:nth-child(6) { transform: rotate(150deg); }
+
+.tm-head { position: absolute; top: 14px; color: #60a5fa; transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 5; transform: translateX(0); filter: drop-shadow(0 0 12px rgba(96,165,250,0.5)); }
+
+/* ===== GRAFO DEL AUTÓMATA ===== */
+.tm-graph-wrap { flex: 1; min-height: 0; background: white; border: 1px solid var(--slate-200); border-radius: 14px; padding: 14px 18px; overflow: auto; }
+.tm-graph { position: relative; min-height: 220px; min-width: 100%; width: max-content; }
+.tm-node { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: all 0.4s var(--ease-spring); }
+.tm-node-circle { width: 34px; height: 34px; border-radius: 50%; background: white; border: 2px solid var(--slate-300); display: flex; align-items: center; justify-content: center; font-family: 'SF Mono', monospace; font-size: 0.66rem; font-weight: 700; color: var(--slate-500); transition: all 0.4s var(--ease-spring); position: relative; }
+.tm-node-circle::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1.5px solid transparent; transition: all 0.4s; }
+.tm-node-label { font-size: 0.62rem; color: var(--slate-400); font-family: 'SF Mono', monospace; }
+.tm-node.initial .tm-node-circle { border-color: var(--navy); }
+.tm-node.initial .tm-node-circle::before { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 4px 7px 4px 0; border-color: transparent var(--navy) transparent transparent; }
+.tm-node.final .tm-node-circle { border-color: var(--emerald-500); border-width: 2.5px; }
+.tm-node.final .tm-node-circle::after { border-color: var(--emerald-500); }
+.tm-node.error .tm-node-circle { border-color: var(--red-500); }
+.tm-node.priority .tm-node-circle { border-color: #f59e0b; }
+.tm-node.priority .tm-node-circle::after { border-color: #f59e0b; }
+.tm-node.priority-c1 .tm-node-circle { background: linear-gradient(135deg, #fef2f2, #fee2e2); border-color: #dc2626; color: #b91c1c; }
+.tm-node.priority-c2 .tm-node-circle { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #f59e0b; color: #b45309; }
+.tm-node.priority-c3 .tm-node-circle { background: linear-gradient(135deg, #fefce8, #fef9c3); border-color: #ca8a04; color: #854d0e; }
+.tm-node.priority-c4 .tm-node-circle { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #10b981; color: #047857; }
+.tm-node.priority-c5 .tm-node-circle { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border-color: #64748b; color: #334155; }
+.tm-node.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(59,130,246,0.18), 0 0 28px rgba(59,130,246,0.45); transform: scale(1.18); }
+.tm-node.priority-c1.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(220,38,38,0.2), 0 0 28px rgba(220,38,38,0.5); }
+.tm-node.priority-c2.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(245,158,11,0.2), 0 0 28px rgba(245,158,11,0.5); }
+.tm-node.priority-c3.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(202,138,4,0.2), 0 0 28px rgba(202,138,4,0.5); }
+.tm-node.priority-c4.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(16,185,129,0.2), 0 0 28px rgba(16,185,129,0.5); }
+.tm-node.priority-c5.active .tm-node-circle { box-shadow: 0 0 0 5px rgba(100,116,139,0.2), 0 0 28px rgba(100,116,139,0.5); }
+.tm-edge { position: absolute; height: 1.5px; background: var(--slate-200); transform-origin: 0 50%; z-index: 0; transition: all 0.4s; }
+.tm-edge.active { background: var(--blue-500); box-shadow: 0 0 8px rgba(59,130,246,0.6); z-index: 2; }
+.tm-edge-label { position: absolute; background: white; padding: 1px 5px; font-size: 0.62rem; font-family: 'SF Mono', monospace; color: var(--slate-500); border-radius: 3px; border: 1px solid var(--slate-200); transform: translate(-50%, -50%); pointer-events: none; transition: all 0.4s; }
+.tm-edge-label.active { color: var(--blue-700); border-color: var(--blue-400); font-weight: 700; }
+
+/* ===== CONTROLES ===== */
+.tm-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; background: white; border: 1px solid var(--slate-200); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.tm-ctrl { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--slate-200); background: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s var(--ease-out); color: var(--slate-600); }
+.tm-ctrl:hover:not(:disabled) { border-color: var(--blue-500); color: var(--blue-600); background: var(--blue-50); transform: translateY(-1px); }
+.tm-ctrl:disabled { opacity: 0.35; cursor: not-allowed; }
+.tm-ctrl svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tm-ctrl-primary { width: auto; padding: 0 16px; gap: 8px; background: var(--navy); color: white; border-color: var(--navy); font-size: 0.82rem; font-weight: 600; }
+.tm-ctrl-primary:hover:not(:disabled) { background: var(--ink); color: white; border-color: var(--ink); }
+.tm-ctrl-primary svg { width: 14px; height: 14px; fill: currentColor; }
+.tm-progress { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 160px; padding: 0 6px; }
+.tm-progress-text { font-family: 'SF Mono', monospace; font-size: 0.74rem; color: var(--slate-500); font-weight: 600; min-width: 52px; }
+.tm-progress-bar { flex: 1; height: 5px; background: var(--slate-100); border-radius: 3px; overflow: hidden; }
+.tm-progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue-500), var(--emerald-500)); border-radius: 3px; width: 0%; transition: width 0.4s var(--ease-out); }
+.tm-speed { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--slate-500); padding-left: 10px; border-left: 1px solid var(--slate-200); }
+.tm-speed input[type="range"] { width: 90px; accent-color: var(--blue-500); cursor: pointer; }
+
+/* ===== PANEL LATERAL ===== */
+.tm-side { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-left: 1px solid var(--slate-200); padding: 24px 22px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+.tm-side-block { display: flex; flex-direction: column; gap: 8px; }
+.tm-side-label { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate-400); }
+.tm-symbol { font-family: 'SF Mono', monospace; font-size: 2.8rem; font-weight: 700; color: var(--navy); line-height: 1; padding: 12px 0 6px; letter-spacing: -0.02em; }
+.tm-states-list { display: flex; flex-wrap: wrap; gap: 5px; min-height: 38px; padding: 8px; background: white; border-radius: 10px; border: 1px solid var(--slate-200); }
+.sim-state-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 999px; font-family: 'SF Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--slate-500); transition: all 0.3s var(--ease-spring); }
+.sim-state-chip.final { border-color: var(--emerald-400); color: #047857; background: var(--emerald-50); }
+.sim-state-chip.error { border-color: var(--red-400); color: #b91c1c; background: var(--red-50); }
+.sim-state-chip.priority { border-color: #f59e0b; color: #b45309; background: #fffbeb; }
+.sim-state-chip.active { background: var(--navy); border-color: var(--navy); color: white; transform: scale(1.1); box-shadow: 0 2px 8px rgba(10,25,41,0.3); }
+.sim-state-chip.active.final { background: var(--emerald-500); border-color: var(--emerald-500); }
+.sim-state-chip.active.error { background: var(--red-500); border-color: var(--red-500); }
+.sim-state-chip.active.priority { background: #f59e0b; border-color: #f59e0b; color: white; }
+.sim-states-empty { font-size: 0.74rem; color: var(--slate-400); font-style: italic; padding: 4px; }
+.tm-explain { font-size: 0.86rem; line-height: 1.5; color: var(--slate-700); padding: 12px 14px; background: white; border: 1px solid var(--slate-200); border-radius: 10px; min-height: 60px; }
+.tm-side-verdict { margin-top: auto; padding: 14px 16px; background: white; border: 1px solid var(--slate-200); border-radius: 12px; }
+.tm-verdict-pending { color: var(--slate-400); font-size: 0.95rem; font-weight: 500; }
+.tm-verdict-running { color: var(--blue-700); background: var(--blue-50); padding: 5px 12px; border-radius: 999px; font-size: 0.84rem; font-weight: 700; display: inline-block; }
+.tm-verdict-accepted { color: #047857; font-family: var(--serif); font-size: 1.2rem; font-weight: 600; }
+.tm-verdict-rejected { color: #b91c1c; font-family: var(--serif); font-size: 1.2rem; font-weight: 600; }
+
+/* ===== OVERLAY RESULTADO ===== */
+.tm-result { position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.tm-result[hidden] { display: none; }
+.tm-result-bg { position: absolute; inset: 0; background: rgba(10, 25, 41, 0.85); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); animation: tmFade 0.5s var(--ease-out) both; }
+.tm-result-shell { position: relative; width: min(560px, 100%); background: white; border-radius: 28px; padding: 48px 44px 36px; text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.6); animation: tmScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; overflow: hidden; }
+.tm-result-shell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #10b981, #f59e0b, #dc2626); }
+.tm-result-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--slate-400); }
+.tm-result-title { font-family: var(--serif); font-size: 1rem; font-weight: 400; color: var(--slate-500); margin: 8px 0 18px; }
+.tm-result-priority { font-family: var(--serif); font-size: clamp(4rem, 12vw, 6.5rem); font-weight: 700; line-height: 1; letter-spacing: -0.04em; margin-bottom: 4px; transition: all 0.5s var(--ease-out); }
+.tm-result-priority.c1 { color: #dc2626; }
+.tm-result-priority.c2 { color: #f59e0b; }
+.tm-result-priority.c3 { color: #ca8a04; }
+.tm-result-priority.c4 { color: #10b981; }
+.tm-result-priority.c5 { color: #475569; }
+.tm-result-desc { font-size: 1.1rem; color: var(--navy); font-weight: 600; margin-bottom: 4px; }
+.tm-result-time { font-size: 0.92rem; color: var(--slate-500); margin-bottom: 18px; }
+.tm-result-meta { font-size: 0.78rem; color: var(--slate-400); padding: 14px 16px; background: var(--slate-50); border-radius: 10px; margin-bottom: 24px; line-height: 1.55; text-align: left; }
+.tm-result-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.tm-result-actions .btn svg { transition: transform 0.4s var(--ease-out); }
+.tm-result-actions .btn:hover svg { transform: translateX(3px); }
+
+@keyframes tmFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tmScale { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes tmSpin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
+@keyframes tmShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-modal-bg, .tm-modal-shell, .tm-result-bg, .tm-result-shell, .tm-roller, .tm-head, .sim-cell, .sim-state-chip, .tm-edge { animation: none !important; transition: none !important; }
+  .tm-roller { transform: translateY(-50%); }
+  .tm-modal-shell, .tm-result-shell { transform: none; }
+}
+
 @media (max-width: 1024px) {
   .two-col, .two-col.reversed, .quad-grid, .compare, .benefits, .set-spec-grid, .lang-grid, .dim-cards { grid-template-columns: 1fr; }
   .case-summary { grid-template-columns: 1fr; }
   .main-grid { grid-template-columns: 1fr; }
   .automata-grid { grid-template-columns: 1fr; }
   .side-dots { display: none; }
+  .tm-form-grid { grid-template-columns: 1fr; }
+  .tm-modal-body { grid-template-columns: 1fr; }
+  .tm-side { border-left: none; border-top: 1px solid var(--slate-200); }
 }
 @media (max-width: 640px) {
   .form-row { grid-template-columns: 1fr; }
@@ -1896,240 +2125,225 @@ body.presenting .tool-section .tool-scroll-inner::-webkit-scrollbar-thumb { disp
   </div>
 </section>
 
-<!-- ===== HERRAMIENTA INTERACTIVA (INTACTA) ===== -->
-<section class="tool-section" id="tool">
-  <div class="tool-scroll-inner">
-  <div class="tool-header">
-    <span class="eyebrow reveal">Herramienta interactiva</span>
-    <h2 class="reveal" style="transition-delay:0.05s">Evaluar paciente en tiempo real</h2>
-    <p class="reveal" style="transition-delay:0.1s">Ingrese los datos clínicos del paciente y observe como el motor lógico ejecuta el automata para clasificar la prioridad.</p>
+<!-- ===== MÁQUINA DE TURING INTERACTIVA ===== -->
+<section class="tm-section" id="tool">
+  <div class="tm-bg-orb tm-bg-orb-1" aria-hidden="true"></div>
+  <div class="tm-bg-orb tm-bg-orb-2" aria-hidden="true"></div>
+
+  <div class="tm-intro">
+    <span class="eyebrow reveal">Simulación interactiva</span>
+    <h2 class="reveal" style="transition-delay:0.05s">Máquina de Turing del Triage</h2>
+    <p class="reveal" style="transition-delay:0.1s">Ingrese los datos clínicos del paciente. El autómata M<sub>T</sub> procesará la cadena del Lenguaje Maestro paso a paso y determinará la prioridad de atención.</p>
   </div>
 
-  <div class="main-grid">
-    <div>
-      <div class="card-shell">
-        <div class="card-inner">
-          <div class="card-head">
-            <div class="card-head-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
-            <h2>Datos del Paciente</h2>
-          </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <div class="form-group"><label>Género</label><select id="genero"><option value="0">Femenino</option><option value="1">Masculino</option></select></div>
-              <div class="form-group"><label>Edad</label><select id="edad"><option value="1">Neonato [0-1 mes)</option><option value="2">Lactante [1-12 meses]</option><option value="3">Preescolar (1-5]</option><option value="4">Escolar (5-12]</option><option value="5">Adolescente (12-18)</option><option value="6" selected>Adulto [18-65)</option><option value="7">Adulto Mayor (>=65)</option></select></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Frec. Cardíaca (lpm)</label><input type="number" id="fc" value="80" min="0" max="300"></div>
-              <div class="form-group"><label>Frec. Respiratoria (rpm)</label><input type="number" id="fr" value="16" min="0" max="100"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Saturación O2 (%)</label><input type="number" id="spo2" value="97" min="0" max="100"></div>
-              <div class="form-group"><label>TAS (mmHg)</label><input type="number" id="tas" value="120" min="0" max="250"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Temperatura (C)</label><input type="number" id="t" value="36.5" min="30" max="45" step="0.1"></div>
-              <div class="form-group"><label>Estado Neurológico (EN)</label><select id="en"><option value="1">1 - Alerta</option><option value="2">2 - Responde a la voz</option><option value="3">3 - Solo al dolor</option><option value="4">4 - Inconsciente</option></select></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Dolor (1-10)</label><input type="number" id="dolor" value="4" min="1" max="10"></div>
-              <div class="form-group"><label>Motivo de Consulta</label><select id="mc"><option value="1">1 - Riesgo Vital</option><option value="2">2 - Cardio/Neuro</option><option value="3">3 - Trauma Grave</option><option value="4">4 - Hemorragias</option><option value="5">5 - Infecciosos</option><option value="6">6 - Trauma Menor</option><option value="7" selected>7 - General</option><option value="8">8 - Administrativo</option></select></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Recursos</label><select id="recursos"><option value="0">0 - Ninguno</option><option value="1">1 - Un recurso</option><option value="2">2 - Dos o más</option></select></div>
-              <div class="form-group" id="perinatalGroup"><label>Perfil Perinatal</label><div class="perinatal-wrap"><label><input type="checkbox" id="o1"> Gestacion >=35 sem</label><label><input type="checkbox" id="o2"> Contracciones</label><label><input type="checkbox" id="o3"> Sangrado</label></div></div>
-            </div>
-          </div>
+  <div class="tm-form-grid">
+    <div class="card-shell reveal" style="transition-delay:0.15s">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-head-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
+          <h2>Datos del Paciente</h2>
         </div>
-      </div>
-
-      <div class="card-shell">
-        <div class="card-inner">
-          <div class="card-head">
-            <div class="card-head-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></div>
-            <h2>Antecedentes Médicos (AM)</h2>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-group"><label>Género</label><select id="genero"><option value="0">Femenino</option><option value="1">Masculino</option></select></div>
+            <div class="form-group"><label>Edad</label><select id="edad"><option value="1">Neonato [0-1 mes)</option><option value="2">Lactante [1-12 meses]</option><option value="3">Preescolar (1-5]</option><option value="4">Escolar (5-12]</option><option value="5">Adolescente (12-18)</option><option value="6" selected>Adulto [18-65)</option><option value="7">Adulto Mayor (>=65)</option></select></div>
           </div>
-          <div class="ant-grid" id="antecedentesGrid">
-            <label class="ant-item"><input type="checkbox" data-bit="0"> Diabetes Mellitus</label>
-            <label class="ant-item"><input type="checkbox" data-bit="1"> Hipertension Arterial</label>
-            <label class="ant-item"><input type="checkbox" data-bit="2"> Inmunosupresion</label>
-            <label class="ant-item"><input type="checkbox" data-bit="3"> Enf. Renal Crónica</label>
-            <label class="ant-item"><input type="checkbox" data-bit="4"> Insuficiencia Cardíaca</label>
-            <label class="ant-item"><input type="checkbox" data-bit="5"> Enf. Pulmonar (EPOC/Asma)</label>
-            <label class="ant-item"><input type="checkbox" data-bit="6"> Antecedente de ACV</label>
-            <label class="ant-item"><input type="checkbox" data-bit="7"> Trastorno de Coagulacion</label>
-            <label class="ant-item"><input type="checkbox" data-bit="8"> Riesgo Psiquiatrico (b9)</label>
-            <label class="ant-item"><input type="checkbox" data-bit="9"> Fragilidad/Dependencia (b10)</label>
+          <div class="form-row">
+            <div class="form-group"><label>Frec. Cardíaca (lpm)</label><input type="number" id="fc" value="80" min="0" max="300"></div>
+            <div class="form-group"><label>Frec. Respiratoria (rpm)</label><input type="number" id="fr" value="16" min="0" max="100"></div>
           </div>
-        </div>
-      </div>
-
-      <div class="card-shell">
-        <div class="card-inner">
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick="evaluar()">
-              <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              Evaluar Paciente
-            </button>
-            <button class="btn btn-secondary" onclick="cargarEjemplo()">
-              <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8Z"/></svg>
-              Cargar Ejemplo
-            </button>
-            <button class="btn btn-secondary" onclick="resetForm()">
-              <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-              Limpiar
-            </button>
+          <div class="form-row">
+            <div class="form-group"><label>Saturación O2 (%)</label><input type="number" id="spo2" value="97" min="0" max="100"></div>
+            <div class="form-group"><label>TAS (mmHg)</label><input type="number" id="tas" value="120" min="0" max="250"></div>
           </div>
-        </div>
-      </div>
-
-      <div id="resultPanel" class="result-panel">
-        <div class="card-shell">
-          <div class="card-inner">
-            <div class="card-head">
-              <div class="card-head-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-              <h2>Resultado del Triage</h2>
-            </div>
-            <div id="priorityResult" class="priority-result">
-              <div class="label">Prioridad Asignada</div>
-              <div class="value" id="prioridadValue">-</div>
-              <div class="desc" id="prioridadDesc">-</div>
-              <div class="time" id="prioridadTime">-</div>
-            </div>
-            <div class="proceso-section"><div id="procesoList"></div></div>
+          <div class="form-row">
+            <div class="form-group"><label>Temperatura (C)</label><input type="number" id="t" value="36.5" min="30" max="45" step="0.1"></div>
+            <div class="form-group"><label>Estado Neurológico (EN)</label><select id="en"><option value="1">1 - Alerta</option><option value="2">2 - Responde a la voz</option><option value="3">3 - Solo al dolor</option><option value="4">4 - Inconsciente</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Dolor (1-10)</label><input type="number" id="dolor" value="4" min="1" max="10"></div>
+            <div class="form-group"><label>Motivo de Consulta</label><select id="mc"><option value="1">1 - Riesgo Vital</option><option value="2">2 - Cardio/Neuro</option><option value="3">3 - Trauma Grave</option><option value="4">4 - Hemorragias</option><option value="5">5 - Infecciosos</option><option value="6">6 - Trauma Menor</option><option value="7" selected>7 - General</option><option value="8">8 - Administrativo</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Recursos</label><select id="recursos"><option value="0">0 - Ninguno</option><option value="1">1 - Un recurso</option><option value="2">2 - Dos o más</option></select></div>
+            <div class="form-group" id="perinatalGroup"><label>Perfil Perinatal</label><div class="perinatal-wrap"><label><input type="checkbox" id="o1"> Gestacion >=35 sem</label><label><input type="checkbox" id="o2"> Contracciones</label><label><input type="checkbox" id="o3"> Sangrado</label></div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div>
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('automata',this)">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-          Automatas
-        </button>
-        <button class="tab" onclick="switchTab('logica',this)">
-          <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/></svg>
-          Lógica
-        </button>
-        <button class="tab" onclick="switchTab('flujo',this)">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-          Flujo
-        </button>
-      </div>
-
-      <div id="tab-automata" class="tab-content active">
-        <div class="automata-grid">
-          <div class="card-shell"><div class="card-inner automata-box">
-            <h3>M<sub>per</sub> - Perfil Perinatal <span class="sub">(S<sub>2</sub>={0,1})</span></h3>
-            <div class="automata-row"><span class="automata-label">Entrada O:</span><span id="perinatalBits" style="font-family:monospace;font-weight:700;font-size:0.85rem;color:var(--slate-700);">_ _ _</span></div>
-            <div class="automata-row">
-              <span class="automata-label">Estados:</span>
-              <div class="state final" id="mper-q0">q0</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mper-q1">q1</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mper-q2">q2</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="mper-q3">q3</div><span class="arrow">&rarr;</span>
-              <div class="state reject" id="mper-q4">q4</div>
-            </div>
-            <div id="mperResult" class="result-text">Esperando evaluación...</div>
-          </div></div>
-
-          <div class="card-shell"><div class="card-inner automata-box">
-            <h3>M<sub>CM</sub> - Carga de Morbilidad <span class="sub">(b1...b8)</span></h3>
-            <div class="automata-row"><span class="automata-label">Bits AM:</span><span id="cmBits" style="font-family:monospace;font-weight:700;font-size:0.82rem;color:var(--slate-700);">________</span></div>
-            <div class="automata-row" style="margin-top:4px;">
-              <span class="automata-label">MCM-1:</span>
-              <div class="state final" id="mcm1-q0">q0</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q1">q1</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q2">q2</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q3">q3</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q4">q4</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q5">q5</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm1-q6">q6</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="mcm1-q7">q7</div><span class="arrow">&rarr;</span>
-              <div class="state reject" id="mcm1-q8">q8</div>
-            </div>
-            <div class="automata-row">
-              <span class="automata-label">MCM-2:</span>
-              <div class="state" id="mcm2-q0">q0</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm2-q1">q1</div><span class="arrow">&rarr;</span>
-              <div class="state" id="mcm2-q2">q2</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="mcm2-q3">q3</div>
-            </div>
-            <div id="cmResult" class="result-text">Esperando evaluación...</div>
-          </div></div>
-
-          <div class="card-shell"><div class="card-inner automata-box">
-            <h3>M<sub>sv-2</sub> - Riesgo Signos Vitales (fRSV)</h3>
-            <div class="automata-row"><span class="automata-label">Riesgos:</span><span id="rsvRiesgos" style="font-family:monospace;font-weight:600;font-size:0.78rem;color:var(--slate-600);">fc:_ tas:_ spo2:_ t:_</span></div>
-            <div class="automata-row">
-              <span class="automata-label">Estados:</span>
-              <div class="state" id="msv2-q0">q0</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="msv2-qn">qn</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="msv2-qm">qm</div><span class="arrow">&rarr;</span>
-              <div class="state final" id="msv2-qc">qc</div><span class="arrow">&rarr;</span>
-              <div class="state reject" id="msv2-qerr">qerr</div>
-            </div>
-            <div id="msv2Result" class="result-text">Esperando evaluación...</div>
-          </div></div>
-
-          <div class="card-shell"><div class="card-inner automata-box">
-            <h3>f<sub>RES</sub> - Mapeo de Recursos</h3>
-            <div class="automata-row"><span class="automata-label">Recursos r:</span><span id="resValor" style="font-family:monospace;font-weight:700;font-size:0.88rem;color:var(--slate-700);">_</span></div>
-            <div class="automata-row">
-              <span class="automata-label">Salida:</span>
-              <span id="resSalida" class="result-text" style="display:inline-block;padding:4px 12px;margin-top:0;">Esperando...</span>
-            </div>
-            <div style="font-size:0.74rem;color:var(--slate-400);margin-top:4px;">r=2 &rarr; C3 &nbsp;|&nbsp; r=1 &rarr; C4 &nbsp;|&nbsp; r=0 &rarr; C5</div>
-          </div></div>
+    <div class="card-shell reveal" style="transition-delay:0.2s">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-head-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></div>
+          <h2>Antecedentes Médicos (AM)</h2>
         </div>
-      </div>
-
-      <div id="tab-logica" class="tab-content">
-        <div class="card-shell"><div class="card-inner">
-          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/></svg></div><h2>Funciones Intermedias</h2></div>
-          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>CM</sub>: Carga de Morbilidad</div><div class="detail" id="logCM">Esperando datos...</div></div></div>
-          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>RSV</sub>: Riesgo Signos Vitales</div><div class="detail" id="logRSV">Esperando datos...</div></div></div>
-          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>RES</sub>: Mapeo de Recursos</div><div class="detail" id="logRES">Esperando datos...</div></div></div>
-          <div class="proceso-item"><div class="icon">?</div><div class="content"><div class="title">f<sub>CM</sub> &ge; 3</div><div class="detail" id="logCM3">Esperando datos...</div></div></div>
-          <div class="proceso-item"><div class="icon">?</div><div class="content"><div class="title">f<sub>RSV</sub> = 2</div><div class="detail" id="logRSV2">Esperando datos...</div></div></div>
-        </div></div>
-        <div class="card-shell"><div class="card-inner">
-          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><h2>Proposiciones Logicas</h2></div>
-          <div class="proceso-item"><div class="content"><div class="title">C1</div><div class="detail" id="propC1">Esperando...</div></div></div>
-          <div class="proceso-item"><div class="content"><div class="title">C2</div><div class="detail" id="propC2">Esperando...</div></div></div>
-          <div class="proceso-item"><div class="content"><div class="title">C3</div><div class="detail" id="propC3">Esperando...</div></div></div>
-          <div class="proceso-item"><div class="content"><div class="title">C4</div><div class="detail" id="propC4">Esperando...</div></div></div>
-          <div class="proceso-item"><div class="content"><div class="title">C5</div><div class="detail" id="propC5">Esperando...</div></div></div>
-        </div></div>
-      </div>
-
-      <div id="tab-flujo" class="tab-content">
-        <div class="card-shell"><div class="card-inner">
-          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div><h2>Flujo de Decisión en Cascada</h2></div>
-          <div class="flow-diagram" id="flowDiagram">
-            <div class="flow-step" id="flow-c1">C1<small>Riesgo Vital</small></div><span class="flow-arrow">&rarr;</span>
-            <div class="flow-step" id="flow-c2">C2<small>Urgencia</small></div><span class="flow-arrow">&rarr;</span>
-            <div class="flow-step" id="flow-c3">C3<small>Mediano Riesgo</small></div><span class="flow-arrow">&rarr;</span>
-            <div class="flow-step" id="flow-c4">C4<small>Baja Complejidad</small></div><span class="flow-arrow">&rarr;</span>
-            <div class="flow-step" id="flow-c5">C5<small>No Urgente</small></div>
-          </div>
-          <div id="flowExplicacion" style="font-size:0.84rem;color:var(--slate-500);margin-top:8px;padding:14px;background:var(--slate-50);border-radius:var(--radius-sm);">Evalue un paciente para ver el flujo.</div>
-        </div></div>
-        <div class="card-shell"><div class="card-inner">
-          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h2>Conjuntos del Sistema</h2></div>
-          <div class="conjuntos-list">
-            <p><span class="tag tag-a">A</span> Perfil Demografico (Género x Edad x Antecedentes)</p>
-            <p><span class="tag tag-s">S</span> Estado Clínico (SV x EN x Dolor x MC)</p>
-            <p><span class="tag tag-r">R</span> Recursos Asistenciales {0, 1, 2}</p>
-            <p><span class="tag tag-o">O</span> Perfil Perinatal (o1, o2, o3)</p>
-            <p><span class="tag tag-p">P</span> Prioridad de Salida {C1, C2, C3, C4, C5}</p>
-            <p style="margin-top:10px;"><strong>Universo:</strong> U = A x S x R x O</p>
-            <p><strong>Función Triage:</strong> T : U &rarr; P</p>
-          </div>
-        </div></div>
+        <div class="ant-grid" id="antecedentesGrid">
+          <label class="ant-item"><input type="checkbox" data-bit="0"> Diabetes Mellitus</label>
+          <label class="ant-item"><input type="checkbox" data-bit="1"> Hipertension Arterial</label>
+          <label class="ant-item"><input type="checkbox" data-bit="2"> Inmunosupresion</label>
+          <label class="ant-item"><input type="checkbox" data-bit="3"> Enf. Renal Crónica</label>
+          <label class="ant-item"><input type="checkbox" data-bit="4"> Insuficiencia Cardíaca</label>
+          <label class="ant-item"><input type="checkbox" data-bit="5"> Enf. Pulmonar (EPOC/Asma)</label>
+          <label class="ant-item"><input type="checkbox" data-bit="6"> Antecedente de ACV</label>
+          <label class="ant-item"><input type="checkbox" data-bit="7"> Trastorno de Coagulacion</label>
+          <label class="ant-item"><input type="checkbox" data-bit="8"> Riesgo Psiquiatrico (b9)</label>
+          <label class="ant-item"><input type="checkbox" data-bit="9"> Fragilidad/Dependencia (b10)</label>
+        </div>
+        <div class="tm-launch-row">
+          <button class="btn btn-secondary" onclick="cargarEjemplo()" type="button">
+            <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8Z"/></svg>
+            Cargar Ejemplo
+          </button>
+          <button class="btn btn-secondary" onclick="resetForm()" type="button">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Limpiar
+          </button>
+          <button class="btn btn-primary tm-launch" id="tmLaunchBtn" type="button">
+            <span>Iniciar simulación</span>
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Elementos fuera de pantalla usados para mantener los IDs que el motor necesita -->
+  <div hidden aria-hidden="true">
+    <span id="perinatalBits"></span>
+    <span id="cmBits"></span>
+    <span id="resValor"></span>
+    <span id="rsvRiesgos"></span>
+    <span id="mperResult"></span>
+    <span id="cmResult"></span>
+    <span id="msv2Result"></span>
+    <span id="resSalida"></span>
+    <span id="priorityResult"></span>
+    <span id="prioridadValue"></span>
+    <span id="prioridadDesc"></span>
+    <span id="prioridadTime"></span>
+    <div id="procesoList"></div>
+    <span id="logCM"></span><span id="logRSV"></span><span id="logRES"></span><span id="logCM3"></span><span id="logRSV2"></span>
+    <span id="propC1"></span><span id="propC2"></span><span id="propC3"></span><span id="propC4"></span><span id="propC5"></span>
+    <div id="flow-c1"></div><div id="flow-c2"></div><div id="flow-c3"></div><div id="flow-c4"></div><div id="flow-c5"></div>
+    <span id="flowExplicacion"></span>
+    <div id="resultPanel"></div>
+  </div>
+
+  <!-- ============== MÁQUINA DE TURING (MODAL FULLSCREEN) ============== -->
+  <div class="tm-modal" id="tmModal" role="dialog" aria-modal="true" aria-labelledby="tmTitle" hidden>
+    <div class="tm-modal-bg" aria-hidden="true"></div>
+    <div class="tm-modal-shell">
+      <header class="tm-modal-header">
+        <div>
+          <span class="tm-modal-eyebrow">Máquina de Turing</span>
+          <h3 id="tmTitle">Procesando Lenguaje Maestro L<sub>T</sub></h3>
+        </div>
+        <button class="tm-modal-close" id="tmCloseBtn" type="button" aria-label="Cerrar simulación">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+
+      <div class="tm-modal-body">
+        <main class="tm-stage">
+          <div class="tm-conveyor" id="tmConveyor">
+            <div class="tm-roller tm-roller-left" aria-hidden="true">
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+            </div>
+            <div class="tm-tape" id="simTape" aria-label="Cinta de la máquina de Turing"></div>
+            <div class="tm-roller tm-roller-right" aria-hidden="true">
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+              <span class="tm-roller-spoke"></span>
+            </div>
+            <div class="tm-head" id="simTapeHead" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="34" height="34"><polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            </div>
+          </div>
+
+          <div class="tm-graph-wrap">
+            <div class="tm-graph" id="tmGraph"></div>
+          </div>
+
+          <div class="tm-controls">
+            <button class="tm-ctrl" id="simBtnStart" type="button" aria-label="Ir al inicio">
+              <svg viewBox="0 0 24 24"><polyline points="19 20 9 12 19 4"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+            </button>
+            <button class="tm-ctrl" id="simBtnBack" type="button" aria-label="Paso atrás">
+              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="tm-ctrl tm-ctrl-primary" id="simBtnPlay" type="button" aria-label="Reproducir">
+              <svg viewBox="0 0 24 24" id="simPlayIcon"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              <span id="simPlayLabel">Reproducir</span>
+            </button>
+            <button class="tm-ctrl" id="simBtnNext" type="button" aria-label="Paso adelante">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="tm-ctrl" id="simBtnEnd" type="button" aria-label="Ir al final">
+              <svg viewBox="0 0 24 24"><polyline points="5 4 15 12 5 20"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+            </button>
+            <div class="tm-progress">
+              <span class="tm-progress-text"><span id="simStep">0</span> / <span id="simTotal">0</span></span>
+              <div class="tm-progress-bar"><div class="tm-progress-fill" id="tmProgressFill"></div></div>
+            </div>
+            <div class="tm-speed">
+              <label for="simSpeed">Velocidad</label>
+              <input type="range" id="simSpeed" min="200" max="1500" step="100" value="700" />
+            </div>
+          </div>
+        </main>
+
+        <aside class="tm-side">
+          <div class="tm-side-block">
+            <div class="tm-side-label">Símbolo en cabeza</div>
+            <div class="tm-symbol" id="simReadSymbol">—</div>
+          </div>
+          <div class="tm-side-block">
+            <div class="tm-side-label">Estados activos</div>
+            <div class="tm-states-list" id="simStatesGrid"></div>
+          </div>
+          <div class="tm-side-block tm-side-explain">
+            <div class="tm-side-label">Transición</div>
+            <div class="tm-explain" id="simExplain">Listo para iniciar la simulación.</div>
+          </div>
+          <div class="tm-side-block tm-side-verdict">
+            <div class="tm-side-label">Veredicto parcial</div>
+            <div class="tm-verdict" id="simVerdict"><span class="tm-verdict-pending">Pendiente</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== OVERLAY RESULTADO ============== -->
+  <div class="tm-result" id="tmResult" role="dialog" aria-modal="true" aria-labelledby="tmResultTitle" hidden>
+    <div class="tm-result-bg" aria-hidden="true"></div>
+    <div class="tm-result-shell">
+      <div class="tm-result-eyebrow">Resultado del Triage</div>
+      <h2 class="tm-result-title" id="tmResultTitle">Prioridad Asignada</h2>
+      <div class="tm-result-priority" id="tmResultPriority">C?</div>
+      <p class="tm-result-desc" id="tmResultDesc">—</p>
+      <div class="tm-result-time" id="tmResultTime">—</div>
+      <div class="tm-result-meta" id="tmResultMeta"></div>
+      <div class="tm-result-actions">
+        <button class="btn btn-secondary" id="tmResultReplay" type="button">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Ver de nuevo
+        </button>
+        <button class="btn btn-primary" id="tmResultClose" type="button">
+          <span>Volver al formulario</span>
+          <svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -2411,9 +2625,9 @@ function getO() { return [document.getElementById('o1').checked ? 1 : 0, documen
 function riesgoFC() {
   const e=getEdad(), fc=getFC(), b10=getAMBits()[9];
   const t={1:{n:[100,160],m:[161,180],ci:90,cs:180},2:{n:[90,150],m:[151,170],ci:80,cs:170},3:{n:[80,120],m:[121,140],ci:70,cs:140},4:{n:[75,115],m:[116,130],ci:65,cs:130},5:{n:[60,100],m:[101,120],ci:55,cs:120},6:{n:[60,100],m:[101,120],ci:50,cs:120},7:{n:[60,90],m:[91,110],ci:50,cs:110}}[e]||t[6];
-  let cs=t.cs; if(b10) cs=Math.round(cs*0.8);
+  let cs=t.cs, m1=t.m[1]; if(b10) { cs=Math.round(cs*0.8); m1=Math.round(t.m[1]*0.8); }
   if (fc>=t.n[0]&&fc<=t.n[1]) return 0;
-  if (fc>=t.m[0]&&fc<=t.m[1]) return 1;
+  if (fc>=t.m[0]&&fc<=m1) return 1;
   if (fc<t.ci||fc>cs) return 2;
   return 1;
 }
@@ -2432,7 +2646,7 @@ function fRES() { const r=getRecursos(); if(r===2) return 3; if(r===1) return 4;
 
 function evaluarMper() {
   const o=getO();
-  document.getElementById('perinatalBits').textContent=o.join(' ');
+  const pb=document.getElementById('perinatalBits'); if(pb) pb.textContent=o.join(' ');
   const res=document.getElementById('mperResult');
   let estado='q0';
   for (let i=0;i<3;i++) {
@@ -2440,10 +2654,12 @@ function evaluarMper() {
     if (o[i]===0) { if(estado==='q0') estado='q1'; else if(estado==='q1') estado='q2'; else if(estado==='q2') estado='q3'; else if(estado==='q3') estado='q4'; }
     else estado='q4';
   }
-  ['q0','q1','q2','q3','q4'].forEach(q => { const e=document.getElementById('mper-'+q); e.classList.remove('active'); if(q===estado) e.classList.add('active'); });
-  const acep=o[0]===0&&o[1]===0&&o[2]===0;
-  if(acep){res.textContent='Aceptado: O = (0,0,0)';res.className='result-text accepted';}
-  else{res.textContent='Rechazado: O contiene algun 1';res.className='result-text rejected';}
+  ['q0','q1','q2','q3','q4'].forEach(q => { const e=document.getElementById('mper-'+q); if(e){e.classList.remove('active'); if(q===estado) e.classList.add('active');} });
+  if(res){
+    const acep=o[0]===0&&o[1]===0&&o[2]===0;
+    if(acep){res.textContent='Aceptado: O = (0,0,0)';res.className='result-text accepted';}
+    else{res.textContent='Rechazado: O contiene algun 1';res.className='result-text rejected';}
+  }
 }
 function evaluarMCM() {
   const bits=getAMBits().slice(0,8); const str=bits.join('');
@@ -2589,7 +2805,609 @@ function resetForm() {
   document.getElementById('resSalida').className='result-text';
 }
 
-document.addEventListener('DOMContentLoaded', () => { evaluar(); });
+// ===== SIMULADOR MT (PIPELINE LT) =====
+
+const SIM = (function() {
+  const MT_FINAL = ['qC1','qC2','qC3','qC4','qC5'];
+  const MT_FINAL_SET = new Set(MT_FINAL);
+  const PRIORITY_FROM_FINAL = { qC1:{code:'C1', name:'Riesgo Vital', desc:'Atención inmediata. Riesgo vital detectado.', time:'Inmediato', cls:'c1'}, qC2:{code:'C2', name:'Urgencia Alta', desc:'Condición grave pero estable. Requiere atención prioritaria.', time:'< 30 min', cls:'c2'}, qC3:{code:'C3', name:'Mediano Riesgo', desc:'Requiere atención sin riesgo vital inmediato.', time:'< 90 min', cls:'c3'}, qC4:{code:'C4', name:'Baja Complejidad', desc:'Paciente estable, baja demanda.', time:'< 180 min', cls:'c4'}, qC5:{code:'C5', name:'No Urgente', desc:'Derivado a SAPU o consultorio. Sin urgencia.', time:'Sin urgencia', cls:'c5'} };
+  const FINAL_PRIORITY = { qC1: 1, qC2: 2, qC3: 3, qC4: 4, qC5: 5 };
+
+  function pickBestPriority(active) {
+    let best = null, bestVal = 99;
+    for (const s of active) {
+      if (FINAL_PRIORITY[s] !== undefined && FINAL_PRIORITY[s] < bestVal) { best = s; bestVal = FINAL_PRIORITY[s]; }
+    }
+    return best;
+  }
+
+  function buildCadenaLT() {
+    const en = getEN();
+    const fc = getFC();
+    const fr = getFR();
+    const rsv = fRSV();
+    const d = getDolor();
+    const b9 = getAMBits()[8];
+    const o = getO();
+    const perinatal = (o[0]===1 || o[1]===1 || o[2]===1) ? 1 : 0;
+    const unosCM = fCM();
+    const cmPass = unosCM >= 3 ? 1 : 0;
+    const cmLight = unosCM === 2 ? 1 : (unosCM === 1 ? 1 : 0);
+    const r = getRecursos();
+    const mc = getMC();
+    const mresVal = (r === 2) ? 3 : (r === 1 ? 4 : 5);
+    return `${en}#${fc}#${fr}#${rsv}#${d}#${b9}#${perinatal}#${cmPass}#${cmLight}#${mc}#${mresVal}`;
+  }
+
+  function tokenizar(cadena) {
+    return cadena.split('').map((c, i) => ({ ch: c, idx: i, isDelim: c === '#' }));
+  }
+
+  function esDigitoValido(c) { return c >= '0' && c <= '9'; }
+
+  function step(state, c) {
+    if (state === 'qerr') return { next: 'qerr', active: new Set(['qerr']), msg: 'Rechazado: estado de error activo' };
+    if (state === 'q0') {
+      if (c >= '1' && c <= '4') return { next: 'q1', active: new Set(['q1']), msg: `EN = ${c}: estado neurológico leído` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Símbolo inválido '${c}' para EN ∈ {1,2,3,4}` };
+    }
+    if (state === 'q1') {
+      if (c === '#') return { next: 'q2', active: new Set(['q2']), msg: 'Delimitador # → leyendo frecuencia cardíaca' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' después de EN` };
+    }
+    if (state === 'q2') {
+      if (esDigitoValido(c)) return { next: 'q3', active: new Set(['q3']), msg: `Primer dígito de f<sub>c</sub> = ${c}` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Dígito inválido '${c}' para f<sub>c</sub>` };
+    }
+    if (state === 'q3') {
+      if (esDigitoValido(c)) return { next: 'q3', active: new Set(['q3']), msg: `Dígito adicional de f<sub>c</sub>` };
+      if (c === '#') return { next: 'q4', active: new Set(['q4']), msg: 'f<sub>c</sub> capturada → leyendo f<sub>r</sub>' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Símbolo inválido '${c}' en f<sub>c</sub>` };
+    }
+    if (state === 'q4') {
+      if (esDigitoValido(c)) return { next: 'q5', active: new Set(['q5']), msg: `Primer dígito de f<sub>r</sub> = ${c}` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Dígito inválido '${c}' para f<sub>r</sub>` };
+    }
+    if (state === 'q5') {
+      if (esDigitoValido(c)) return { next: 'q5', active: new Set(['q5']), msg: `Dígito adicional de f<sub>r</sub>` };
+      if (c === '#') return { next: 'q6', active: new Set(['q6']), msg: 'f<sub>r</sub> capturada → leyendo M<sub>sv-2</sub>' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Símbolo inválido '${c}' en f<sub>r</sub>` };
+    }
+    if (state === 'q6') {
+      if (c === '0' || c === '1' || c === '2') {
+        const v = parseInt(c, 10);
+        if (v === 2) return { next: 'q7', active: new Set(['q7', 'qC2']), msg: `M<sub>sv-2</sub> = 2 (Crítico) → activa C2` };
+        if (v === 1) return { next: 'q7', active: new Set(['q7']), msg: `M<sub>sv-2</sub> = 1 (Moderado)` };
+        return { next: 'q7', active: new Set(['q7']), msg: `M<sub>sv-2</sub> = 0 (Normal)` };
+      }
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Riesgo '${c}' inválido` };
+    }
+    if (state === 'q7') {
+      if (c === '#') return { next: 'q8', active: new Set(['q8']), msg: 'Delimitador # → leyendo Dolor' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras Msv-2` };
+    }
+    if (state === 'q8') {
+      if (c >= '1' && c <= '9') return { next: 'q9', active: new Set(['q9']), msg: `D = ${c}: dolor registrado` };
+      if (c === '0') return { next: 'q9', active: new Set(['q9']), msg: 'D = 10: dolor máximo' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Dolor '${c}' fuera de rango` };
+    }
+    if (state === 'q9') {
+      if (c === '#') return { next: 'q10', active: new Set(['q10']), msg: 'Dolor capturado → leyendo b<sub>9</sub>' };
+      if (c === '0') return { next: 'q9', active: new Set(['q9']), msg: 'D = 10: dígito adicional' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Símbolo inválido '${c}' tras dolor` };
+    }
+    if (state === 'q10') {
+      if (c === '0' || c === '1') {
+        if (c === '1') return { next: 'q11', active: new Set(['q11', 'qC2']), msg: `b<sub>9</sub> = 1 → activa C2` };
+        return { next: 'q11', active: new Set(['q11']), msg: `b<sub>9</sub> = 0` };
+      }
+      return { next: 'qerr', active: new Set(['qerr']), msg: `b<sub>9</sub> inválido` };
+    }
+    if (state === 'q11') {
+      if (c === '#') return { next: 'q12', active: new Set(['q12']), msg: 'b<sub>9</sub> leído → perinatal' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras b<sub>9</sub>` };
+    }
+    if (state === 'q12') {
+      if (c === '0' || c === '1') {
+        if (c === '1') return { next: 'q13', active: new Set(['q13', 'qC2']), msg: `O activo → activa C2` };
+        return { next: 'q13', active: new Set(['q13']), msg: `O = (0,0,0)` };
+      }
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Bit perinatal inválido` };
+    }
+    if (state === 'q13') {
+      if (c === '#') return { next: 'q14', active: new Set(['q14']), msg: 'Perinatal leído → M<sub>CM-1</sub>' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras perinatal` };
+    }
+    if (state === 'q14') {
+      if (c === '0' || c === '1') {
+        if (c === '1') return { next: 'q15', active: new Set(['q15', 'qC3']), msg: `f<sub>CM</sub> ≥ 3 → activa C3` };
+        return { next: 'q15', active: new Set(['q15']), msg: `f<sub>CM</sub> < 3` };
+      }
+      return { next: 'qerr', active: new Set(['qerr']), msg: `M<sub>CM-1</sub> inválido` };
+    }
+    if (state === 'q15') {
+      if (c === '#') return { next: 'q16', active: new Set(['q16']), msg: 'M<sub>CM-1</sub> leído → M<sub>CM-2</sub>' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras M<sub>CM-1</sub>` };
+    }
+    if (state === 'q16') {
+      if (c === '0' || c === '1') return { next: 'q17', active: new Set(['q17']), msg: `M<sub>CM-2</sub> = ${c}` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `M<sub>CM-2</sub> inválido` };
+    }
+    if (state === 'q17') {
+      if (c === '#') return { next: 'q18', active: new Set(['q18']), msg: 'M<sub>CM-2</sub> leído → MC' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras M<sub>CM-2</sub>` };
+    }
+    if (state === 'q18') {
+      if (c >= '1' && c <= '8') return { next: 'q19', active: new Set(['q19']), msg: `MC = ${c}` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `MC '${c}' fuera de rango` };
+    }
+    if (state === 'q19') {
+      if (c === '#') return { next: 'q20', active: new Set(['q20']), msg: 'MC leído → M<sub>RES</sub>' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Se esperaba '#' tras MC` };
+    }
+    if (state === 'q20') {
+      if (c === '3') return { next: 'q21', active: new Set(['q21', 'qC3']), msg: `M<sub>RES</sub> = 3 → activa C3` };
+      if (c === '4') return { next: 'q21', active: new Set(['q21']), msg: `M<sub>RES</sub> = 4 → tentativa C4` };
+      if (c === '5') return { next: 'q21', active: new Set(['q21']), msg: `M<sub>RES</sub> = 5 → tentativa C5` };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `M<sub>RES</sub> '${c}' inválido` };
+    }
+    if (state === 'q21') {
+      if (c === undefined || c === null) return { next: 'q22', active: new Set(['q22']), msg: 'Cadena consumida → cascada' };
+      return { next: 'qerr', active: new Set(['qerr']), msg: `Símbolo extra '${c}'` };
+    }
+    if (state === 'q22' || (state === 'q21' && (c === undefined || c === null))) {
+      if (state === 'q21') return { next: 'q22', active: new Set(['q22']), msg: 'Cadena consumida → cascada' };
+      const en = getEN(), mc = getMC(), fc = getFC(), fr = getFR(), fRsv = fRSV(), d = getDolor(), b9 = getAMBits()[8], o = getO(), fCm = fCM(), r = getRecursos();
+      const isC1 = (en>=3) || (mc===1) || (fc===0) || (fr===0);
+      if (isC1) return { next: 'qC1', active: new Set(['qC1']), msg: 'Prioridad C1: riesgo vital' };
+      const isC2 = !isC1 && (fRsv===2 || d>=7 || (mc>=2 && mc<=4) || b9===1 || (o[0]!==0 || o[1]!==0 || o[2]!==0));
+      if (isC2) return { next: 'qC2', active: new Set(['qC2']), msg: 'Prioridad C2: urgencia' };
+      const isC3 = !isC1 && !isC2 && (fRsv===1 || fCm>=3 || mc===5 || (r===2));
+      if (isC3) return { next: 'qC3', active: new Set(['qC3']), msg: 'Prioridad C3: mediano riesgo' };
+      const isC4 = !isC1 && !isC2 && !isC3 && (mc>=6 && mc<=7) && (r===1);
+      if (isC4) return { next: 'qC4', active: new Set(['qC4']), msg: 'Prioridad C4: baja complejidad' };
+      return { next: 'qC5', active: new Set(['qC5']), msg: 'Prioridad C5: descarte' };
+    }
+    return { next: 'qerr', active: new Set(['qerr']), msg: `Estado no esperado ${state}` };
+  }
+
+  function simular() {
+    const cadena = buildCadenaLT();
+    const tokens = tokenizar(cadena);
+    let active = new Set(['q0']);
+    let stepIdx = 0;
+    const snapshots = [{ step: 0, pos: -1, read: null, active: new Set(active), msg: 'Inicio del cómputo: estado q<sub>0</sub>', token: null, isFinal: false, isErr: false, edge: null }];
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      const currentArr = Array.from(active);
+      const nextSet = new Set();
+      let transitionMsg = '';
+      let lastTransition = null;
+      for (const s of currentArr) {
+        if (MT_FINAL_SET.has(s)) { nextSet.add(s); continue; }
+        const result = step(s, tok.ch);
+        result.active.forEach(x => nextSet.add(x));
+        transitionMsg = result.msg;
+        lastTransition = { from: s, to: result.next, ch: tok.ch };
+      }
+      if (nextSet.size === 0) nextSet.add('qerr');
+      active = nextSet;
+      stepIdx++;
+      const isErr = active.has('qerr') && active.size === 1;
+      const isFinal = false;
+      snapshots.push({ step: stepIdx, pos: i, read: tok.ch, active: new Set(active), msg: transitionMsg, token: tok, isFinal, isErr, edge: lastTransition });
+      if (isErr) break;
+    }
+    if (!Array.from(active).some(s => MT_FINAL_SET.has(s)) && !active.has('qerr')) {
+      let safety = 6;
+      while (safety-- > 0 && !Array.from(active).some(s => MT_FINAL_SET.has(s)) && !active.has('qerr')) {
+        const currentArr = Array.from(active);
+        const nextSet = new Set();
+        let transitionMsg = '';
+        let lastTransition = null;
+        for (const s of currentArr) {
+          const result = step(s, undefined);
+          result.active.forEach(x => nextSet.add(x));
+          transitionMsg = result.msg;
+          lastTransition = { from: s, to: result.next, ch: null };
+        }
+        active = nextSet;
+        stepIdx++;
+        const isErr = active.has('qerr') && active.size === 1;
+        const isFinal = !isErr && Array.from(active).some(s => MT_FINAL_SET.has(s));
+        snapshots.push({ step: stepIdx, pos: tokens.length - 1, read: null, active: new Set(active), msg: transitionMsg, token: null, isFinal, isErr, edge: lastTransition });
+      }
+    } else if (Array.from(active).some(s => MT_FINAL_SET.has(s)) && !active.has('qerr')) {
+      const last = snapshots[snapshots.length - 1];
+      last.isFinal = true;
+    }
+    return { cadena, snapshots, total: tokens.length };
+  }
+
+  // ===== Layout del grafo del autómata =====
+  // Disposición horizontal con dos filas y un cluster de prioridades al final
+  const GRAPH_LAYOUT = {
+    q0:   { x:  20, y: 110 },
+    q1:   { x: 120, y: 110 },
+    q2:   { x: 220, y: 110 },
+    q3:   { x: 320, y:  60 },
+    q4:   { x: 320, y: 160 },
+    q5:   { x: 410, y: 110 },
+    q6:   { x: 510, y: 110 },
+    q7:   { x: 610, y: 110 },
+    q8:   { x: 710, y: 110 },
+    q9:   { x: 810, y: 110 },
+    q10:  { x: 910, y: 110 },
+    q11:  { x: 990, y: 110 },
+    q12:  { x: 990, y: 180 },
+    q13:  { x: 990, y: 240 },
+    q14:  { x: 990, y: 300 },
+    q15:  { x: 1100, y: 180 },
+    q16:  { x: 1100, y: 240 },
+    q17:  { x: 1100, y: 300 },
+    q18:  { x: 1230, y: 240 },
+    q19:  { x: 1340, y: 240 },
+    q20:  { x: 1450, y: 240 },
+    q21:  { x: 1560, y: 240 },
+    q22:  { x: 1670, y: 240 },
+    qerr: { x: 1450, y: 100 },
+    qC1:  { x: 1800, y:  80 },
+    qC2:  { x: 1800, y: 160 },
+    qC3:  { x: 1800, y: 240 },
+    qC4:  { x: 1800, y: 320 },
+    qC5:  { x: 1800, y: 400 }
+  };
+
+  // Aristas explícitas (from -> to) con etiqueta
+  const GRAPH_EDGES = [
+    ['q0','q1','EN'], ['q1','q2','#'], ['q2','q3','d'], ['q3','q4','#'], ['q4','q5','d'],
+    ['q5','q6','#'], ['q6','q7','r'], ['q7','q8','#'], ['q8','q9','D'], ['q9','q10','#'],
+    ['q10','q11','b9'], ['q11','q12','#'], ['q12','q13','O'], ['q13','q14','#'],
+    ['q14','q15','CM1'], ['q15','q16','#'], ['q16','q17','CM2'], ['q17','q18','#'],
+    ['q18','q19','MC'], ['q19','q20','#'], ['q20','q21','Mres'], ['q21','q22','λ'],
+    ['q22','qC1','C1'], ['q22','qC2','C2'], ['q22','qC3','C3'], ['q22','qC4','C4'], ['q22','qC5','C5'],
+    ['q6','qC2','λ'], ['q10','qC2','λ'], ['q12','qC2','λ'], ['q14','qC3','λ'], ['q20','qC3','λ']
+  ];
+
+  let currentRun = null;
+  let currentStep = 0;
+  let playing = false;
+  let playTimer = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function buildGraph() {
+    const graph = $('tmGraph');
+    if (!graph) return;
+    graph.innerHTML = '';
+    const positions = Object.entries(GRAPH_LAYOUT);
+    const maxX = Math.max(...positions.map(([_, p]) => p.x)) + 100;
+    const maxY = Math.max(...positions.map(([_, p]) => p.y)) + 60;
+    graph.style.width = maxX + 'px';
+    graph.style.height = maxY + 'px';
+
+    // Aristas primero (debajo)
+    GRAPH_EDGES.forEach(([from, to, label]) => {
+      const a = GRAPH_LAYOUT[from], b = GRAPH_LAYOUT[to];
+      if (!a || !b) return;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx, dy);
+      const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      const edge = document.createElement('div');
+      edge.className = 'tm-edge';
+      edge.id = 'edge-' + from + '-' + to;
+      edge.style.left = (a.x + 17) + 'px';
+      edge.style.top = (a.y + 17) + 'px';
+      edge.style.width = (len - 30) + 'px';
+      edge.style.transform = `rotate(${ang}deg)`;
+      graph.appendChild(edge);
+      const lab = document.createElement('div');
+      lab.className = 'tm-edge-label';
+      lab.id = 'edge-label-' + from + '-' + to;
+      lab.textContent = label;
+      const mx = (a.x + 17 + b.x + 17) / 2 - 6;
+      const my = (a.y + 17 + b.y + 17) / 2 - 6;
+      lab.style.left = mx + 'px';
+      lab.style.top = my + 'px';
+      graph.appendChild(lab);
+    });
+
+    // Nodos
+    positions.forEach(([name, pos]) => {
+      const node = document.createElement('div');
+      node.className = 'tm-node';
+      node.id = 'node-' + name;
+      node.style.left = pos.x + 'px';
+      node.style.top = pos.y + 'px';
+      if (name === 'q0') node.classList.add('initial');
+      if (MT_FINAL_SET.has(name)) {
+        const pClass = name === 'qC1' ? 'priority-c1' : name === 'qC2' ? 'priority-c2' : name === 'qC3' ? 'priority-c3' : name === 'qC4' ? 'priority-c4' : 'priority-c5';
+        node.classList.add('final', pClass);
+      }
+      if (name === 'qerr') node.classList.add('error');
+      const circle = document.createElement('div');
+      circle.className = 'tm-node-circle';
+      const labelTxt = name === 'qerr' ? '✕' : (MT_FINAL_SET.has(name) ? name.replace('qC', 'C') : name);
+      circle.innerHTML = labelTxt;
+      const lbl = document.createElement('div');
+      lbl.className = 'tm-node-label';
+      lbl.textContent = MT_FINAL_SET.has(name) ? 'final' : (name === 'qerr' ? 'error' : '');
+      node.appendChild(circle);
+      if (lbl.textContent) node.appendChild(lbl);
+      graph.appendChild(node);
+    });
+  }
+
+  function renderCinta() {
+    if (!currentRun) return;
+    const tape = $('simTape');
+    tape.innerHTML = '';
+    const tokens = tokenizar(currentRun.cadena);
+    const snap = currentRun.snapshots[currentStep];
+    const pos = snap ? snap.pos : -1;
+    tokens.forEach((tok, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'sim-cell' + (tok.isDelim ? ' delim' : '');
+      cell.textContent = tok.ch;
+      if (pos >= 0 && i < pos) cell.classList.add('passed');
+      else if (i === pos) {
+        cell.classList.add('read');
+        if (snap.isErr) cell.classList.add('rejected');
+      }
+      tape.appendChild(cell);
+    });
+    const head = $('simTapeHead');
+    const cellWidth = 50;
+    const cellGap = 4;
+    const padding = 90;
+    let offset = 0;
+    if (pos < 0) offset = 0;
+    else offset = padding + pos * (cellWidth + cellGap) + cellWidth / 2 - 17;
+    head.style.transform = `translateX(${offset}px)`;
+    requestAnimationFrame(() => {
+      const target = tape.children[pos];
+      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  }
+
+  function renderGraph() {
+    if (!currentRun) return;
+    const snap = currentRun.snapshots[currentStep];
+    const active = snap.active;
+    document.querySelectorAll('.tm-node').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.tm-edge, .tm-edge-label').forEach(e => e.classList.remove('active'));
+    active.forEach(s => {
+      const node = document.getElementById('node-' + s);
+      if (node) node.classList.add('active');
+    });
+    if (snap.edge) {
+      const id = 'edge-' + snap.edge.from + '-' + snap.edge.to;
+      const lblId = 'edge-label-' + snap.edge.from + '-' + snap.edge.to;
+      const edge = document.getElementById(id);
+      const lbl = document.getElementById(lblId);
+      if (edge) edge.classList.add('active');
+      if (lbl) lbl.classList.add('active');
+    }
+    const wrap = document.querySelector('.tm-graph-wrap');
+    if (wrap) {
+      const activeNode = document.querySelector('.tm-node.active');
+      if (activeNode) {
+        const x = parseFloat(activeNode.style.left);
+        const y = parseFloat(activeNode.style.top);
+        const targetLeft = Math.max(0, x - wrap.clientWidth / 2 + 20);
+        const targetTop = Math.max(0, y - wrap.clientHeight / 2 + 20);
+        wrap.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
+      }
+    }
+  }
+
+  function renderSide() {
+    if (!currentRun) return;
+    const snap = currentRun.snapshots[currentStep];
+    $('simStep').textContent = currentStep;
+    $('simTotal').textContent = currentRun.snapshots.length - 1;
+    const progressFill = $('tmProgressFill');
+    if (progressFill) {
+      const max = currentRun.snapshots.length - 1;
+      progressFill.style.width = (max > 0 ? (currentStep / max) * 100 : 0) + '%';
+    }
+    $('simReadSymbol').textContent = snap.read === null ? '—' : snap.read;
+    $('simExplain').innerHTML = snap.msg;
+    const grid = $('simStatesGrid');
+    grid.innerHTML = '';
+    const sorted = Array.from(snap.active).sort((a, b) => {
+      if (MT_FINAL_SET.has(a) && !MT_FINAL_SET.has(b)) return 1;
+      if (!MT_FINAL_SET.has(a) && MT_FINAL_SET.has(b)) return -1;
+      return a.localeCompare(b, undefined, { numeric: true });
+    });
+    sorted.forEach(s => {
+      const chip = document.createElement('div');
+      let cls = 'sim-state-chip';
+      if (s === 'qerr') cls += ' error';
+      else if (MT_FINAL_SET.has(s)) {
+        const c = PRIORITY_FROM_FINAL[s].code.toLowerCase();
+        cls += ' priority priority-' + c;
+      }
+      cls += ' active';
+      chip.className = cls;
+      chip.textContent = MT_FINAL_SET.has(s) ? s.replace('qC', 'C') : s;
+      grid.appendChild(chip);
+    });
+    const verdictEl = $('simVerdict');
+    if (snap.isErr) verdictEl.innerHTML = '<span class="tm-verdict-rejected">Cadena rechazada por qerr</span>';
+    else {
+      const best = pickBestPriority(snap.active);
+      if (best && snap.isFinal) {
+        const p = PRIORITY_FROM_FINAL[best];
+        verdictEl.innerHTML = `<span class="tm-verdict-accepted">${p.code} — ${p.name}</span>`;
+      } else if (currentStep === 0) verdictEl.innerHTML = '<span class="tm-verdict-pending">En espera</span>';
+      else verdictEl.innerHTML = '<span class="tm-verdict-running">Procesando…</span>';
+    }
+  }
+
+  function renderAll() {
+    if (!currentRun) return;
+    renderCinta();
+    renderGraph();
+    renderSide();
+    updateButtons();
+  }
+
+  function updateButtons() {
+    const max = currentRun ? currentRun.snapshots.length - 1 : 0;
+    $('simBtnStart').disabled = !currentRun || currentStep === 0;
+    $('simBtnBack').disabled = !currentRun || currentStep === 0;
+    $('simBtnNext').disabled = !currentRun || currentStep >= max;
+    $('simBtnEnd').disabled = !currentRun || currentStep >= max;
+  }
+
+  function goto(idx) {
+    if (!currentRun) return;
+    currentStep = Math.max(0, Math.min(idx, currentRun.snapshots.length - 1));
+    renderAll();
+  }
+
+  function stepForward() {
+    if (!currentRun) return false;
+    if (currentStep < currentRun.snapshots.length - 1) {
+      currentStep++;
+      renderAll();
+      return true;
+    }
+    if (playing) {
+      stopPlay();
+      showResult();
+    }
+    return false;
+  }
+
+  function stepBack() {
+    if (!currentRun) return;
+    if (currentStep > 0) { currentStep--; renderAll(); }
+  }
+
+  function start() {
+    if (!currentRun) return;
+    currentStep = 0;
+    renderAll();
+  }
+
+  function end() {
+    if (!currentRun) return;
+    currentStep = currentRun.snapshots.length - 1;
+    renderAll();
+    if (playing) stopPlay();
+    setTimeout(showResult, 500);
+  }
+
+  function stopPlay() {
+    playing = false;
+    clearTimeout(playTimer);
+    const label = $('simPlayLabel');
+    const icon = $('simPlayIcon');
+    if (label) label.textContent = 'Reproducir';
+    if (icon) icon.innerHTML = '<polygon points="6 4 20 12 6 20 6 4"/>';
+  }
+
+  function togglePlay() {
+    if (!currentRun) return;
+    playing = !playing;
+    if (playing) {
+      if (currentStep >= currentRun.snapshots.length - 1) currentStep = 0;
+      $('simPlayLabel').textContent = 'Pausar';
+      $('simPlayIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      playLoop();
+    } else stopPlay();
+  }
+
+  function playLoop() {
+    if (!playing) return;
+    const moved = stepForward();
+    if (!moved) return;
+    const speed = parseInt($('simSpeed').value, 10);
+    playTimer = setTimeout(playLoop, speed);
+  }
+
+  function showResult() {
+    if (!currentRun) return;
+    const last = currentRun.snapshots[currentRun.snapshots.length - 1];
+    const overlay = $('tmResult');
+    const priorityEl = $('tmResultPriority');
+    const descEl = $('tmResultDesc');
+    const timeEl = $('tmResultTime');
+    const metaEl = $('tmResultMeta');
+    if (last.isErr) {
+      priorityEl.textContent = '✕';
+      priorityEl.className = 'tm-result-priority c1';
+      descEl.textContent = 'Cadena rechazada';
+      timeEl.textContent = last.msg;
+    } else {
+      const best = pickBestPriority(last.active);
+      if (best) {
+        const p = PRIORITY_FROM_FINAL[best];
+        priorityEl.textContent = p.code;
+        priorityEl.className = 'tm-result-priority ' + p.cls;
+        descEl.textContent = p.name;
+        timeEl.textContent = 'Tiempo máximo de espera: ' + p.time;
+        metaEl.innerHTML = '<strong>Cadena procesada:</strong> <code style="font-family:SF Mono,monospace;color:var(--navy);">' + currentRun.cadena + '</code><br><span style="display:block;margin-top:6px;">' + p.desc + '</span>';
+      }
+    }
+    overlay.hidden = false;
+  }
+
+  function hideResult() {
+    $('tmResult').hidden = true;
+  }
+
+  function openModal() {
+    currentRun = simular();
+    currentStep = 0;
+    buildGraph();
+    renderAll();
+    $('tmModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      if (playing) return;
+      togglePlay();
+    }, 400);
+  }
+
+  function closeModal() {
+    stopPlay();
+    hideResult();
+    $('tmModal').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function init() {
+    buildGraph();
+    $('simBtnStart').addEventListener('click', () => { stopPlay(); start(); });
+    $('simBtnBack').addEventListener('click', () => { stopPlay(); stepBack(); });
+    $('simBtnNext').addEventListener('click', () => { stopPlay(); stepForward(); });
+    $('simBtnEnd').addEventListener('click', end);
+    $('simBtnPlay').addEventListener('click', togglePlay);
+    $('tmCloseBtn').addEventListener('click', closeModal);
+    $('tmResultClose').addEventListener('click', () => { hideResult(); closeModal(); });
+    $('tmResultReplay').addEventListener('click', () => { hideResult(); currentStep = 0; renderAll(); togglePlay(); });
+    $('tmLaunchBtn').addEventListener('click', openModal);
+    document.addEventListener('keydown', (e) => {
+      if ($('tmModal').hidden) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+      if (e.key === 'Escape') { if (!$('tmResult').hidden) hideResult(); else closeModal(); }
+      if (!$('tmResult').hidden) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); stopPlay(); stepForward(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); stopPlay(); stepBack(); }
+      else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+      else if (e.key === 'Home') { e.preventDefault(); stopPlay(); start(); }
+      else if (e.key === 'End') { e.preventDefault(); end(); }
+    });
+  }
+
+  return { init, simular, buildCadenaLT };
+})();
+window.SIM = SIM;
+
+document.addEventListener('DOMContentLoaded', () => { SIM.init(); });
 </script>
 </body>
 </html>
