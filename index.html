@@ -1,0 +1,2595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimización del Triage Hospitalario - UCN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      packages: {'[+]': ['ams']}
+    },
+    svg: { fontCache: 'global' },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --navy: #0a1929;
+  --navy-soft: #112a3f;
+  --ink: #0f172a;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --emerald-50: #ecfdf5;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-50: #fffbeb;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-50: #fef2f2;
+  --c3: #ca8a04;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 9999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --shadow-card: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.04);
+  --serif: 'Source Serif 4', Georgia, serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background: var(--slate-50);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.top-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background: rgba(248, 250, 252, 0.7);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--slate-200);
+  transition: all 0.4s var(--ease-out);
+}
+.top-nav.scrolled { padding: 10px 32px; background: rgba(255,255,255,0.92); }
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.02em; color: var(--navy); }
+.nav-brand-mark { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+.nav-brand small { color: var(--slate-400); font-weight: 400; margin-left: 4px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-link { padding: 7px 14px; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; color: var(--slate-500); text-decoration: none; transition: all 0.3s var(--ease-out); }
+.nav-link:hover { background: var(--slate-100); color: var(--navy); }
+.nav-link.tool { background: var(--navy); color: white; }
+.nav-link.tool:hover { background: var(--ink); transform: translateY(-1px); }
+.nav-link.present { background: white; color: var(--navy); border: 1.5px solid var(--slate-200); display: inline-flex; align-items: center; gap: 6px; }
+.nav-link.present:hover { border-color: var(--blue-500); color: var(--blue-600); }
+.nav-link.present svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+body.presenting { overflow-x: hidden; }
+body.presenting .top-nav,
+body.presenting .side-dots { display: none !important; }
+body.presenting .slide { padding-top: 80px; padding-bottom: 60px; }
+body.presenting .slide-num { top: 24px; left: 32px; }
+body.presenting .tool-section {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+body.presenting .tool-section .tool-scroll-inner {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-right: 8px;
+}
+body.presenting .tool-section .tool-scroll-inner::-webkit-scrollbar,
+body.presenting .tool-section .tool-scroll-inner::-webkit-scrollbar-track,
+body.presenting .tool-section .tool-scroll-inner::-webkit-scrollbar-thumb { display: none; width: 0; height: 0; }
+.side-dots { position: fixed; right: 28px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 14px; z-index: 50; }
+.side-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--slate-300); border: 1.5px solid var(--slate-300); transition: all 0.4s var(--ease-out); cursor: pointer; position: relative; }
+.side-dot:hover { transform: scale(1.4); }
+.side-dot.active { background: var(--navy); border-color: var(--navy); transform: scale(1.3); }
+.side-dot::after { content: attr(data-label); position: absolute; right: 18px; top: 50%; transform: translateY(-50%); background: var(--navy); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.side-dot:hover::after { opacity: 1; }
+.slide { min-height: 100dvh; max-height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 56px 32px 32px; position: relative; overflow: hidden; }
+.slide-num { position: absolute; top: 22px; left: 32px; font-family: var(--serif); font-style: italic; font-size: 0.95rem; color: var(--slate-400); letter-spacing: 0.02em; }
+.slide-num strong { color: var(--navy); font-weight: 600; font-style: normal; }
+.slide-inner { max-width: 1200px; width: 100%; margin: 0 auto; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--slate-100); border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-600); margin-bottom: 22px; }
+.eyebrow svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+.slide h1, .slide h2 { font-family: var(--serif); font-weight: 600; color: var(--navy); letter-spacing: -0.02em; line-height: 1.1; }
+.slide h1 { font-size: clamp(2.6rem, 5vw, 4.2rem); margin-bottom: 14px; }
+.slide h2 { font-size: clamp(2.1rem, 3.6vw, 2.8rem); margin-bottom: 14px; line-height: 1.12; }
+.slide-subtitle { font-size: clamp(1.1rem, 1.6vw, 1.3rem); color: var(--slate-600); max-width: 64ch; margin-bottom: 20px; line-height: 1.45; }
+.slide-body { font-size: 1.12rem; color: var(--slate-700); line-height: 1.5; }
+.slide-body ul { list-style: none; margin-top: 6px; }
+.slide-body li { position: relative; padding-left: 24px; margin-bottom: 10px; max-width: 70ch; color: var(--slate-700); font-size: 1.12rem; line-height: 1.5; }
+.slide-body li::before { content: ''; position: absolute; left: 0; top: 12px; width: 10px; height: 2px; background: var(--blue-500); }
+.slide-portada { background: var(--navy); color: white; text-align: center; align-items: center; }
+.slide-portada .slide-num { color: rgba(255,255,255,0.4); }
+.slide-portada .slide-num strong { color: white; }
+.slide-portada h1 { color: white; max-width: 22ch; margin: 0 auto 24px; }
+.slide-portada .slide-subtitle { color: rgba(255,255,255,0.7); max-width: 56ch; margin: 0 auto 56px; }
+.portada-isotipo { width: 80px; height: 80px; margin: 0 auto 32px; display: flex; align-items: center; justify-content: center; }
+.portada-line { width: 60px; height: 1px; background: var(--blue-400); margin: 0 auto 40px; opacity: 0.5; }
+.portada-team { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 8px; }
+.portada-team small { color: rgba(255,255,255,0.5); font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+.portada-team ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; max-width: 700px; }
+.portada-team li { font-size: 1.1rem; color: rgba(255,255,255,0.9); position: relative; font-weight: 500; }
+
+.portada-prof { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 8px; }
+.portada-prof small { color: rgba(255,255,255,0.5); font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+.portada-prof ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; max-width: 700px; }
+.portada-prof li { font-size: 1.1rem; color: rgba(255,255,255,0.9); position: relative; font-weight: 500; }
+
+.portada-meta { position: absolute; bottom: 32px; left: 0; right: 0; color: rgba(255,255,255,0.4); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+.portada-meta-row { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+.portada-meta-row span { display: inline-flex; align-items: center; gap: 6px; }
+.two-col { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+.two-col.reversed { grid-template-columns: 1fr 1.1fr; }
+.two-col .visual { aspect-ratio: 4/3; background: var(--slate-100); border-radius: var(--radius-lg); position: relative; overflow: hidden; border: 1px solid var(--slate-200); }
+.viz-caption { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.72rem; color: var(--slate-500); font-weight: 500; }
+.cascade-table { display: grid; grid-template-columns: 130px 1fr auto; gap: 0; background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); overflow: hidden; margin-top: 20px; }
+.cascade-row { display: contents; }
+.cascade-cell { padding: 16px 22px; font-size: 1rem; border-bottom: 1px solid var(--slate-100); }
+.cascade-row:last-child .cascade-cell { border-bottom: none; }
+.cascade-cell.code { font-family: var(--serif); font-weight: 600; font-size: 1.35rem; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+.cascade-cell.code .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cascade-cell.time { font-weight: 700; font-size: 0.95rem; color: var(--slate-600); text-align: right; }
+.cascade-cell strong { color: var(--navy); display: block; margin-bottom: 2px; }
+.cascade-cell small { color: var(--slate-500); font-size: 0.9rem; }
+.quad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+.quad { background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; gap: 12px; transition: all 0.3s var(--ease-out); }
+.quad:hover { border-color: var(--slate-300); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.quad-head { display: flex; align-items: center; gap: 12px; }
+.quad-mark { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.quad-mark svg { width: 18px; height: 18px; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.quad h4 { font-size: 0.95rem; font-weight: 700; color: var(--navy); }
+.quad p { font-size: 0.84rem; color: var(--slate-500); line-height: 1.5; }
+.quad-a .quad-mark { background: var(--blue-50); }
+.quad-a .quad-mark svg { stroke: var(--blue-500); }
+.quad-s .quad-mark { background: #fce7f3; }
+.quad-s .quad-mark svg { stroke: #be185d; }
+.quad-r .quad-mark { background: var(--amber-50); }
+.quad-r .quad-mark svg { stroke: #b45309; }
+.quad-o .quad-mark { background: var(--emerald-50); }
+.quad-o .quad-mark svg { stroke: #047857; }
+.flow-cascade { display: flex; flex-direction: column; gap: 6px; background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; }
+.flow-row { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-sm); background: var(--slate-50); font-size: 0.98rem; border-left: 3px solid var(--slate-300); }
+.flow-row .step { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; color: var(--navy); min-width: 32px; }
+.flow-row .desc { color: var(--slate-600); font-size: 0.9rem; font-family: monospace; }
+.flow-row.c1 { border-left-color: var(--red-500); }
+.flow-row.c2 { border-left-color: var(--amber-500); }
+.flow-row.c3 { border-left-color: #eab308; }
+.flow-row.c4 { border-left-color: var(--emerald-500); }
+.flow-row.c5 { border-left-color: var(--slate-400); }
+.bio-table { width: 100%; background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); overflow: hidden; margin-top: 10px; font-size: 0.98rem; border-collapse: collapse; }
+.bio-table thead { background: var(--slate-50); }
+.bio-table th { padding: 10px 14px; text-align: left; font-weight: 600; color: var(--slate-500); font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--slate-200); }
+.bio-table td { padding: 10px 14px; border-top: 1px solid var(--slate-100); }
+.bio-table tr:first-child td { border-top: none; }
+.bio-table td:first-child { font-weight: 600; color: var(--navy); }
+.bio-tag { display: inline-block; padding: 3px 9px; border-radius: 4px; font-size: 0.84rem; font-weight: 600; font-family: monospace; white-space: nowrap; }
+.bio-tag.norm { background: var(--emerald-50); color: #047857; }
+.bio-tag.mod { background: var(--amber-50); color: #b45309; }
+.bio-tag.crit { background: var(--red-50); color: #b91c1c; }
+.threshold-vis { background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 18px 20px; }
+.threshold-bar { position: relative; height: 50px; background: linear-gradient(to right, var(--emerald-50), var(--amber-50) 70%, var(--red-50)); border-radius: var(--radius-sm); margin: 22px 0 56px; overflow: visible; }
+.threshold-line { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--navy); display: flex; align-items: center; justify-content: center; }
+.threshold-line::after { content: attr(data-value); position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+.threshold-marker { position: absolute; top: -6px; bottom: -6px; width: 3px; background: var(--blue-500); border-radius: 2px; }
+.threshold-marker::after { content: attr(data-value); position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: var(--blue-500); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+.compare-card { background: white; border: 1.5px solid var(--slate-200); border-radius: var(--radius-md); padding: 18px 20px; transition: all 0.3s var(--ease-out); }
+.compare-card.optimized { border-color: var(--blue-500); background: linear-gradient(135deg, var(--blue-50), white); }
+.compare-card .label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-400); margin-bottom: 8px; }
+.compare-card.optimized .label { color: var(--blue-600); }
+.compare-card h4 { font-family: var(--serif); font-size: 1.4rem; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.compare-card p { font-size: 0.95rem; line-height: 1.5; margin-bottom: 8px; }
+.compare-card .time { font-size: 0.95rem; color: var(--slate-500); font-weight: 600; }
+.automata-visual { display: flex; align-items: center; justify-content: center; padding: 32px; background: var(--slate-50); border-radius: var(--radius-md); height: 100%; position: relative; flex-direction: column; gap: 20px; }
+.automata-states { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.automata-state { width: 38px; height: 38px; border-radius: 50%; background: white; border: 2px solid var(--slate-300); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: var(--slate-500); position: relative; }
+.automata-state.final { border-color: var(--emerald-500); border-width: 2.5px; }
+.automata-state.initial::before { content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 5px 8px 5px 0; border-color: transparent var(--navy) transparent transparent; }
+.automata-state.initial { border-color: var(--navy); }
+.automata-arr { color: var(--slate-300); font-size: 0.8rem; }
+.automata-label { font-size: 0.7rem; color: var(--slate-400); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+.benefit { background: white; border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 24px; text-align: left; transition: all 0.3s var(--ease-out); }
+.benefit:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.benefit-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--navy); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.benefit-icon svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.benefit h4 { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.benefit p { font-size: 0.85rem; color: var(--slate-500); line-height: 1.5; }
+.slide-cierre { background: var(--navy); color: white; text-align: center; align-items: center; }
+.slide-cierre h2 { color: white; max-width: 24ch; margin: 0 auto 24px; }
+.slide-cierre p { color: rgba(255,255,255,0.7); max-width: 50ch; margin: 0 auto 36px; }
+.slide-cierre .slide-num { color: rgba(255,255,255,0.4); }
+.slide-cierre .slide-num strong { color: white; }
+.cierre-cta { display: inline-flex; align-items: center; gap: 10px; padding: 18px 36px; background: white; color: var(--navy); font-weight: 700; font-size: 1.1rem; border-radius: var(--radius-pill); text-decoration: none; margin-top: 20px; transition: all 0.3s var(--ease-out); }
+.cierre-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+.cierre-cta svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+.tool-section { background: var(--slate-50); border-top: 1px solid var(--slate-200); padding: 60px 32px 80px; }
+.tool-header { max-width: 1200px; margin: 0 auto 40px; text-align: center; }
+.tool-header h2 { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 600; color: var(--navy); margin-bottom: 12px; letter-spacing: -0.02em; margin-top: 12px; }
+.tool-header p { color: var(--slate-500); max-width: 50ch; margin: 0 auto; }
+.main-grid { max-width: 1360px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.card-shell { background: rgba(0,0,0,0.02); border: 1px solid var(--slate-200); padding: 1.5px; border-radius: var(--radius-lg); margin-bottom: 18px; transition: all 0.4s var(--ease-out); }
+.card-shell:hover { border-color: var(--slate-300); }
+.card-inner { background: white; border-radius: calc(var(--radius-lg) - 1.5px); padding: 22px; box-shadow: var(--shadow-card); }
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--slate-100); }
+.card-head-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--slate-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card-head-icon svg { width: 15px; height: 15px; stroke: var(--slate-600); stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.card-head h2 { font-size: 0.92rem; font-weight: 700; letter-spacing: -0.01em; color: var(--slate-800); }
+.form-grid { display: grid; gap: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 0.76rem; font-weight: 600; color: var(--slate-500); letter-spacing: 0.01em; }
+.form-group input, .form-group select { font-family: inherit; padding: 9px 12px; border: 1.5px solid var(--slate-200); border-radius: var(--radius-sm); font-size: 0.84rem; background: white; color: var(--slate-800); transition: all 0.25s var(--ease-out); outline: none; -webkit-appearance: none; appearance: none; }
+.form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+.form-group input:focus, .form-group select:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.ant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 5px; }
+.ant-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 7px 10px; border-radius: var(--radius-sm); background: var(--slate-50); cursor: pointer; transition: all 0.2s var(--ease-out); user-select: none; }
+.ant-item:hover { background: var(--slate-100); }
+.ant-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--blue-500); cursor: pointer; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border: none; border-radius: var(--radius-pill); font-family: inherit; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.3s var(--ease-out); white-space: nowrap; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--navy); color: white; box-shadow: 0 2px 8px rgba(15,23,42,0.12); }
+.btn-primary:hover { background: var(--ink); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,0.18); }
+.btn-secondary { background: transparent; color: var(--slate-600); border: 1.5px solid var(--slate-200); }
+.btn-secondary:hover { border-color: var(--blue-500); color: var(--blue-600); background: var(--blue-50); }
+.btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tabs { display: flex; gap: 2px; background: var(--slate-100); border-radius: var(--radius-md); padding: 3px; margin-bottom: 16px; }
+.tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; border-radius: calc(var(--radius-md) - 3px); font-size: 0.8rem; font-weight: 600; cursor: pointer; background: transparent; color: var(--slate-500); border: none; transition: all 0.3s var(--ease-out); font-family: inherit; }
+.tab:hover { color: var(--slate-700); }
+.tab.active { background: white; color: var(--slate-800); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.tab svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.automata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.automata-box { padding: 16px; }
+.automata-box h3 { font-size: 0.78rem; font-weight: 700; color: var(--slate-700); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.automata-box h3 .sub { font-weight: 400; font-size: 0.68rem; color: var(--slate-400); }
+.automata-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+.automata-label { font-size: 0.65rem; font-weight: 700; color: var(--slate-400); min-width: 65px; letter-spacing: 0.04em; }
+.state { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; border: 2px solid var(--slate-300); background: white; transition: all 0.35s var(--ease-spring); flex-shrink: 0; }
+.state.active { border-color: var(--blue-500); background: var(--blue-50); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); transform: scale(1.15); }
+.state.final { border-width: 2.5px; border-color: var(--emerald-400); }
+.state.final.active { border-color: var(--emerald-500); background: var(--emerald-50); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+.state.reject { border-color: var(--red-400); }
+.state.reject.active { border-color: var(--red-500); background: var(--red-50); box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+.arrow { color: var(--slate-300); font-size: 0.7rem; flex-shrink: 0; }
+.result-text { margin-top: 8px; padding: 7px 11px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; background: var(--slate-50); border: 1px solid var(--slate-200); transition: all 0.3s var(--ease-out); }
+.result-text.accepted { border-color: var(--emerald-400); color: #065f46; background: var(--emerald-50); }
+.result-text.rejected { border-color: var(--red-400); color: #991b1b; background: var(--red-50); }
+.result-panel { display: none; }
+.result-panel.visible { display: block; }
+.priority-result { text-align: center; padding: 26px 20px; border-radius: var(--radius-md); transition: all 0.3s var(--ease-out); }
+.priority-result .label { font-size: 0.74rem; font-weight: 700; color: var(--slate-500); letter-spacing: 0.06em; text-transform: uppercase; }
+.priority-result .value { font-size: 2rem; font-weight: 800; margin: 6px 0; letter-spacing: -0.03em; font-family: var(--serif); }
+.priority-result .desc { font-size: 0.84rem; color: var(--slate-500); max-width: 400px; margin: 0 auto; }
+.priority-result .time { font-size: 1rem; font-weight: 700; margin-top: 6px; }
+.priority-result.c1 { background: linear-gradient(135deg, var(--red-50), white); border: 1.5px solid var(--red-400); }
+.priority-result.c1 .value { color: var(--red-500); }
+.priority-result.c2 { background: linear-gradient(135deg, var(--amber-50), white); border: 1.5px solid var(--amber-400); }
+.priority-result.c2 .value { color: var(--amber-500); }
+.priority-result.c3 { background: linear-gradient(135deg, var(--amber-50), white); border: 1.5px solid #eab308; }
+.priority-result.c3 .value { color: var(--c3); }
+.priority-result.c4 { background: linear-gradient(135deg, var(--emerald-50), white); border: 1.5px solid var(--emerald-400); }
+.priority-result.c4 .value { color: var(--emerald-500); }
+.priority-result.c5 { background: linear-gradient(135deg, var(--slate-100), white); border: 1.5px solid var(--slate-300); }
+.priority-result.c5 .value { color: var(--slate-500); }
+.proceso-section { margin-top: 14px; }
+.proceso-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 13px; border-left: 3px solid var(--slate-200); margin-bottom: 5px; background: var(--slate-50); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.82rem; transition: all 0.3s var(--ease-out); }
+.proceso-item .icon { flex-shrink: 0; width: 20px; text-align: center; font-size: 0.78rem; color: var(--slate-400); font-weight: 700; }
+.proceso-item .content { flex: 1; }
+.proceso-item .content .title { font-weight: 600; color: var(--slate-700); }
+.proceso-item .content .detail { color: var(--slate-500); font-size: 0.76rem; margin-top: 1px; }
+.proceso-item.checked { border-left-color: var(--emerald-500); background: var(--emerald-50); }
+.proceso-item.checked .icon { color: var(--emerald-500); }
+.proceso-item.failing { border-left-color: var(--red-400); background: var(--red-50); }
+.proceso-item.failing .icon { color: var(--red-400); }
+.flow-diagram { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 14px 0; }
+.flow-step { padding: 9px 16px; border-radius: var(--radius-sm); font-size: 0.76rem; font-weight: 600; background: var(--slate-100); border: 1.5px solid var(--slate-200); text-align: center; line-height: 1.3; transition: all 0.3s var(--ease-out); }
+.flow-step small { font-weight: 400; font-size: 0.68rem; color: var(--slate-400); display: block; }
+.flow-step.passed { border-color: var(--emerald-500); background: var(--emerald-50); color: #065f46; }
+.flow-step.passed small { color: #065f46; }
+.flow-step.failed { border-color: var(--slate-300); background: var(--slate-50); color: var(--slate-400); }
+.flow-step.failed small { color: var(--slate-300); }
+.flow-arrow { color: var(--slate-300); font-size: 0.8rem; flex-shrink: 0; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 0.84rem; font-weight: 700; margin: 2px; letter-spacing: 0.02em; }
+.tag-a { background: var(--blue-100); color: var(--blue-700); }
+.tag-s { background: #fce7f3; color: #be185d; }
+.tag-r { background: var(--amber-50); color: #b45309; }
+.tag-o { background: var(--emerald-50); color: #047857; }
+.tag-p { background: #e0e7ff; color: #4338ca; }
+.perinatal-wrap { display: flex; gap: 10px; flex-wrap: wrap; }
+.perinatal-wrap label { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; cursor: pointer; }
+.perinatal-wrap input { width: 14px; height: 14px; accent-color: var(--blue-500); }
+.conjuntos-list { font-size: 0.84rem; }
+.conjuntos-list p { margin-bottom: 6px; }
+.conjuntos-list strong { font-weight: 600; }
+.reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s var(--ease-out); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.no-js .reveal { opacity: 1 !important; transform: none !important; }
+
+/* ===== Bloques matematicos premium ===== */
+.math-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s var(--ease-out);
+}
+.math-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(15,23,42,0.06); }
+.math-card h4 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.math-card .math-body {
+  font-size: 1rem;
+  color: var(--slate-600);
+  line-height: 1.55;
+}
+.math-card .math-body strong { color: var(--navy); }
+.math-card .math-body p { margin-bottom: 8px; }
+.math-card .math-body p:last-child { margin-bottom: 0; }
+.math-card.formula-center { text-align: center; padding: 22px; }
+.math-card.formula-center .formula-block { font-size: 1.2rem; color: var(--navy); }
+
+.set-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.set-spec-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+.set-spec-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(15,23,42,0.06); }
+.set-spec-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--slate-200);
+}
+.set-spec-card.quad-a::before { background: var(--blue-500); }
+.set-spec-card.quad-s::before { background: #be185d; }
+.set-spec-card.quad-r::before { background: #b45309; }
+.set-spec-card.quad-o::before { background: #047857; }
+.set-spec-card.quad-p::before { background: #4338ca; }
+.set-spec-card .set-id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: white;
+}
+.set-spec-card h5 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+  letter-spacing: -0.005em;
+}
+.set-spec-card p, .set-spec-card li {
+  font-size: 0.95rem;
+  color: var(--slate-600);
+  line-height: 1.5;
+}
+.set-spec-card .formula-inline {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+  display: block;
+  padding: 5px 10px;
+  background: var(--slate-50);
+  border-radius: 6px;
+}
+.set-spec-card ul { list-style: none; padding: 0; margin: 0; }
+.set-spec-card li { position: relative; padding-left: 14px; margin-bottom: 4px; }
+.set-spec-card li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--slate-300);
+}
+
+.placeholder-frame {
+  background: var(--slate-50);
+  border: 1.5px dashed var(--slate-300);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s var(--ease-out);
+}
+.placeholder-frame:hover {
+  border-color: var(--blue-400);
+  background: var(--blue-50);
+}
+.placeholder-frame .ph-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid var(--slate-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.placeholder-frame .ph-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--slate-400);
+  fill: none;
+  stroke-width: 1.5;
+}
+.placeholder-frame h4 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+.placeholder-frame p {
+  font-size: 0.95rem;
+  color: var(--slate-500);
+  max-width: 42ch;
+  line-height: 1.55;
+}
+.placeholder-frame.dense {
+  background: white;
+  border: 1px solid var(--slate-200);
+  text-align: left;
+  align-items: stretch;
+  padding: 18px 20px;
+}
+.placeholder-frame.dense .ph-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.placeholder-frame.dense .ph-head .ph-icon { width: 36px; height: 36px; }
+.placeholder-frame.dense .ph-head .ph-icon svg { width: 18px; height: 18px; }
+.placeholder-frame.dense .ph-head h4 { font-size: 1.05rem; margin: 0; }
+.placeholder-frame.dense .ph-head small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--slate-400);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.placeholder-frame.dense p { max-width: none; margin: 0; font-size: 0.95rem; line-height: 1.5; }
+.placeholder-frame.dense .ph-slot {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--slate-50);
+  border: 1px dashed var(--slate-300);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  color: var(--slate-400);
+  text-align: center;
+  font-style: italic;
+}
+
+.prop-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--slate-100);
+  color: var(--slate-600);
+  margin: 2px;
+}
+.prop-badge.true { background: var(--emerald-50); color: #047857; }
+.prop-badge.false { background: var(--red-50); color: #b91c1c; }
+
+.truth-table {
+  width: 100%;
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 16px;
+}
+.truth-table th {
+  background: var(--slate-50);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--slate-500);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--slate-200);
+}
+.truth-table td {
+  padding: 10px 14px;
+  border-top: 1px solid var(--slate-100);
+  color: var(--slate-700);
+}
+.truth-table td.mono {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.lang-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s var(--ease-out);
+  position: relative;
+}
+.lang-card:hover { transform: translateY(-2px); }
+.lang-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--slate-200);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.lang-card.acc::before { background: var(--emerald-500); }
+.lang-card.rej::before { background: var(--red-400); }
+.lang-card h5 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-card .lang-formula {
+  font-size: 0.95rem;
+  color: var(--slate-700);
+  background: var(--slate-50);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  border-left: 2px solid var(--blue-500);
+  overflow-x: auto;
+}
+.lang-card .lang-examples {
+  font-size: 0.88rem;
+  color: var(--slate-500);
+  line-height: 1.5;
+}
+.lang-card .lang-examples strong { color: var(--navy); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 8px; margin-bottom: 4px; font-weight: 700; }
+.lang-card .lang-examples strong:first-child { margin-top: 0; }
+.lang-card .lang-examples .ex-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 0.84rem;
+  align-items: center;
+}
+.lang-card .lang-examples .ex-row code {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--slate-50);
+  font-size: 0.84rem;
+}
+.lang-card .lang-examples .ex-row.ok code { background: var(--emerald-50); color: #047857; }
+.lang-card .lang-examples .ex-row.no code { background: var(--red-50); color: #b91c1c; }
+
+.priority-strip {
+  display: flex;
+  gap: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: 12px;
+  background: white;
+  border: 1px solid var(--slate-200);
+}
+.priority-strip .pseg {
+  flex: 1;
+  padding: 14px 10px;
+  text-align: center;
+  border-right: 1px solid var(--slate-100);
+  background: white;
+  position: relative;
+  transition: all 0.3s var(--ease-out);
+}
+.priority-strip .pseg:last-child { border-right: none; }
+.priority-strip .pseg:hover { transform: translateY(-2px); }
+.priority-strip .pseg .pcode {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.15rem;
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.priority-strip .pseg .pname {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--slate-600);
+  margin-bottom: 4px;
+}
+.priority-strip .pseg .ptime {
+  font-size: 0.85rem;
+  color: var(--slate-500);
+  font-weight: 600;
+}
+.priority-strip .pseg.c1 .pcode { background: var(--red-50); color: var(--red-500); }
+.priority-strip .pseg.c2 .pcode { background: var(--amber-50); color: var(--amber-500); }
+.priority-strip .pseg.c3 .pcode { background: #fef9c3; color: var(--c3); }
+.priority-strip .pseg.c4 .pcode { background: var(--emerald-50); color: var(--emerald-500); }
+.priority-strip .pseg.c5 .pcode { background: var(--slate-100); color: var(--slate-500); }
+
+.callout {
+  background: linear-gradient(135deg, var(--blue-50), white);
+  border: 1px solid var(--blue-100);
+  border-left: 3px solid var(--blue-500);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  font-size: 1.02rem;
+  color: var(--slate-700);
+  line-height: 1.5;
+  margin-top: 14px;
+}
+.callout strong { color: var(--navy); }
+.callout.amber { background: linear-gradient(135deg, var(--amber-50), white); border-color: #fde68a; border-left-color: var(--amber-500); }
+
+.dim-cards { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 16px; }
+.dim-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  text-align: center;
+  transition: all 0.3s var(--ease-out);
+}
+.dim-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.dim-card .dim-label {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.dim-card .dim-sub {
+  font-size: 0.78rem;
+  color: var(--slate-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.dim-card p { font-size: 0.9rem; color: var(--slate-500); line-height: 1.45; }
+
+.lang-block {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: var(--slate-700);
+}
+.lang-block h5 {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.lang-block .formula {
+  background: white;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--blue-500);
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 0.92rem;
+  margin: 6px 0;
+  overflow-x: auto;
+}
+.lang-block p { font-size: 0.92rem; color: var(--slate-500); line-height: 1.45; margin-top: 4px; }
+.lang-block code { font-family: 'SF Mono', 'JetBrains Mono', monospace; background: white; padding: 1px 5px; border-radius: 3px; font-size: 0.92rem; }
+
+.case-summary {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  font-size: 0.82rem;
+}
+.case-summary h5 {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  grid-column: 1 / -1;
+}
+.case-summary .case-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--slate-100);
+  gap: 8px;
+}
+.case-summary .case-row:last-child { border-bottom: none; }
+.case-summary .case-row strong { color: var(--slate-700); font-weight: 600; font-size: 0.78rem; }
+.case-summary .case-row span { color: var(--navy); font-weight: 600; font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 0.78rem; text-align: right; }
+
+@media (max-width: 1024px) {
+  .two-col, .two-col.reversed, .quad-grid, .compare, .benefits, .set-spec-grid, .lang-grid, .dim-cards { grid-template-columns: 1fr; }
+  .case-summary { grid-template-columns: 1fr; }
+  .main-grid { grid-template-columns: 1fr; }
+  .automata-grid { grid-template-columns: 1fr; }
+  .side-dots { display: none; }
+}
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .top-nav { padding: 12px 16px; }
+  .nav-link { padding: 6px 10px; font-size: 0.72rem; }
+  .ant-grid { grid-template-columns: 1fr 1fr; }
+  .card-inner { padding: 16px; }
+  .tab { font-size: 0.7rem; padding: 7px 8px; }
+  .tab svg { display: none; }
+  .slide { padding: 50px 18px 30px; }
+  .slide-num { left: 18px; top: 16px; }
+  .cascade-table { grid-template-columns: 80px 1fr; }
+  .cascade-cell.time { grid-column: 1 / -1; text-align: left; padding-top: 0; }
+  .math-card, .set-spec-card, .lang-card, .placeholder-frame { padding: 14px 16px; }
+}
+</style>
+</head>
+<body class="no-js">
+<nav class="top-nav" id="topNav">
+  <div class="nav-brand">
+    <span class="nav-brand-mark">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 16h5l2-6 4 12 3-9 2 5h10" stroke="#0a1929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="3" cy="16" r="1.5" fill="#3b82f6"/>
+      </svg>
+    </span>
+    Triage UCN <small>&middot; Fundamentos ITI</small>
+  </div>
+  <div class="nav-links">
+    <a href="#slide-1" class="nav-link">Inicio</a>
+    <a href="#slide-20" class="nav-link">Cierre</a>
+    <a href="#tool" class="nav-link tool">Herramienta</a>
+    <button class="nav-link present" id="presentBtn" onclick="togglePresent()">
+      <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      Presentar
+    </button>
+  </div>
+</nav>
+
+<div class="side-dots" id="sideDots">
+  <div class="side-dot" data-label="01 Portada" data-target="slide-1"></div>
+  <div class="side-dot" data-label="02 El problema" data-target="slide-2"></div>
+  <div class="side-dot" data-label="03 Universo U" data-target="slide-3"></div>
+  <div class="side-dot" data-label="04 Conjunto A" data-target="slide-4"></div>
+  <div class="side-dot" data-label="05 Conjunto S" data-target="slide-5"></div>
+  <div class="side-dot" data-label="06 R, O y P" data-target="slide-6"></div>
+  <div class="side-dot" data-label="07 Rper" data-target="slide-7"></div>
+  <div class="side-dot" data-label="08 Rfrag" data-target="slide-8"></div>
+  <div class="side-dot" data-label="09 Funcion T" data-target="slide-9"></div>
+  <div class="side-dot" data-label="10 fCM" data-target="slide-10"></div>
+  <div class="side-dot" data-label="11 fRSV" data-target="slide-11"></div>
+  <div class="side-dot" data-label="12 fRSV subfunc" data-target="slide-12"></div>
+  <div class="side-dot" data-label="13 fRES" data-target="slide-13"></div>
+  <div class="side-dot" data-label="14 Alfabetos" data-target="slide-14"></div>
+  <div class="side-dot" data-label="15 Lenguajes I" data-target="slide-15"></div>
+  <div class="side-dot" data-label="15b Lenguajes II" data-target="slide-15b"></div>
+  <div class="side-dot" data-label="17 Automatas I" data-target="slide-17"></div>
+  <div class="side-dot" data-label="18 Automatas II" data-target="slide-18"></div>
+  <div class="side-dot" data-label="19 Caso" data-target="slide-19"></div>
+  <div class="side-dot" data-label="20 Cierre" data-target="slide-20"></div>
+</div>
+
+<!-- ===== SLIDE 1: PORTADA ===== -->
+<section class="slide slide-portada" id="slide-1">
+  <div class="slide-num">Diapositiva <strong>01</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="portada-isotipo reveal">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+        <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <path d="M10 40h12l4-14 8 28 6-18 4 10h8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="40" cy="40" r="3" fill="#3b82f6"/>
+        <circle cx="22" cy="40" r="2" fill="white"/>
+        <circle cx="58" cy="46" r="2" fill="white"/>
+        <line x1="22" y1="40" x2="40" y2="40" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="2 2"/>
+        <line x1="40" y1="40" x2="58" y2="46" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="2 2"/>
+      </svg>
+    </div>
+    <h1 class="reveal" style="transition-delay: 0.1s">Optimización del Triage Hospitalario</h1>
+    <p class="slide-subtitle reveal" style="transition-delay: 0.2s">Modelado matemático y computacional para la eliminación de la subjetividad en la atención médica de emergencia</p>
+    <div class="portada-line reveal" style="transition-delay: 0.3s"></div>
+    <div class="portada-team reveal" style="transition-delay: 0.4s">
+       <small>Equipo de Trabajo</small>
+       <ul>
+         <li>Gael Ortega</li>
+         <li>Andrés Toro</li>
+         <li>Johan Piñones</li>
+         <li>Matías Vidal</li>
+       </ul>
+     </div>
+     <div class="portada-prof reveal" style="transition-delay: 0.45s">
+       <small>Profesor</small>
+       <ul>
+         <li>Felipe Ruiz</li>
+       </ul>
+     </div>
+  </div>
+  <div class="portada-meta">
+    <div class="portada-meta-row">
+      <span>Universidad Católica del Norte</span>
+      <span>Fundamentos de Cs. de la Computación</span>
+      <span>2026</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 2: EL PROBLEMA ===== -->
+<section class="slide" id="slide-2">
+  <div class="slide-num">Diapositiva <strong>02</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          El problema
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">El costo clínico de la subjetividad</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Las unidades de emergencia operan bajo una saturación constante que imposibilita la atención por estricto orden de llegada. La evaluación inicial depende, en un porcentaje crítico, de la percepción del evaluador.</p>
+        <ul class="slide-body reveal" style="transition-delay:0.15s">
+          <li><strong style="color:var(--navy)">Demanda critica transversal:</strong> imposibilidad operativa de atender por orden de llegada.</li>
+          <li><strong style="color:var(--navy)">El peligro de la subjetividad:</strong> variabilidad humana en la primera evaluacion clínica.</li>
+          <li><strong style="color:var(--navy)">Consecuencias:</strong> retraso en la identificación de desviaciones fisiológicas sutiles compromete la supervivencia del paciente.</li>
+          <li><strong style="color:var(--navy)">Necesidad:</strong> una clasificación objetiva que traduzca síntomas en un nivel de prioridad reproducible.</li>
+        </ul>
+      </div>
+      <div class="visual reveal" style="transition-delay:0.2s">
+        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="problemGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fef2f2"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>
+          <rect width="400" height="300" fill="url(#problemGrad)"/>
+          <path d="M 60 50 L 340 50 L 240 160 L 240 250 L 160 250 L 160 160 Z" fill="white" stroke="#e2e8f0" stroke-width="1.5"/>
+          <g stroke="#ef4444" stroke-width="1.5" fill="#ef4444" stroke-linecap="round">
+            <path d="M 30 80 L 70 80" fill="none"/><polygon points="70,77 78,80 70,83"/>
+            <path d="M 30 100 L 70 100" fill="none"/><polygon points="70,97 78,100 70,103"/>
+            <path d="M 30 120 L 70 120" fill="none"/><polygon points="70,117 78,120 70,123"/>
+            <path d="M 30 140 L 70 140" fill="none"/><polygon points="70,137 78,140 70,143"/>
+          </g>
+          <text x="20" y="50" font-family="serif" font-size="9" fill="#64748b">Criterios</text>
+          <text x="20" y="62" font-family="serif" font-size="9" fill="#64748b">variables</text>
+          <g transform="translate(355, 100)">
+            <circle cx="0" cy="0" r="25" fill="none" stroke="#f59e0b" stroke-width="2"/>
+            <line x1="0" y1="0" x2="0" y2="-15" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <line x1="0" y1="0" x2="10" y2="0" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="0" cy="0" r="2" fill="#f59e0b"/>
+            <text x="-30" y="42" font-family="serif" font-size="9" fill="#b45309">Retraso critico</text>
+          </g>
+          <g>
+            <circle cx="180" cy="200" r="6" fill="#3b82f6" opacity="0.7"/>
+            <circle cx="200" cy="200" r="6" fill="#94a3b8" opacity="0.5"/>
+            <circle cx="220" cy="200" r="6" fill="#94a3b8" opacity="0.5"/>
+            <circle cx="190" cy="220" r="6" fill="#94a3b8" opacity="0.4"/>
+            <circle cx="210" cy="220" r="6" fill="#94a3b8" opacity="0.4"/>
+          </g>
+        </svg>
+        <div class="viz-caption">Embudo de atención: criterios variables generan retrasos clínicos que comprometen la supervivencia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 3: UNIVERSO DE DISCURSO ===== -->
+<section class="slide" id="slide-3">
+  <div class="slide-num">Diapositiva <strong>03</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Marco Teórico I
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">El Universo de Discurso</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">El espacio teórico de estados se define como el producto cartesiano de cuatro dimensiones que modelan toda la información del paciente al momento del ingreso hospitalario.</p>
+    <div class="math-card formula-center reveal" style="transition-delay:0.15s;">
+      <div class="formula-block">$$U = A \times S \times R \times O$$</div>
+    </div>
+    <div class="dim-cards reveal" style="transition-delay:0.2s">
+      <div class="dim-card">
+        <div class="dim-label">A</div>
+        <div class="dim-sub">Perfil</div>
+        <p>Demografia, edad y antecedentes médicos</p>
+      </div>
+      <div class="dim-card">
+        <div class="dim-label">S</div>
+        <div class="dim-sub">Síntomas</div>
+        <p>Signos vitales, conciencia, dolor y motivo</p>
+      </div>
+      <div class="dim-card">
+        <div class="dim-label">R</div>
+        <div class="dim-sub">Recursos</div>
+        <p>Demanda asistencial proyectada</p>
+      </div>
+      <div class="dim-card">
+        <div class="dim-label">O</div>
+        <div class="dim-sub">Obstétrico</div>
+        <p>Perfil perinatal de seguridad</p>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top: 28px; gap: 40px;">
+      <div class="math-card reveal" style="transition-delay:0.25s;">
+        <h4>Justificación Técnica</h4>
+        <div class="math-body">
+          <p>El uso del <strong>producto cartesiano</strong> permite modelar el sistema como un espacio multidimensional en el que cada elemento $u \in U$ corresponde a una tupla que reune <strong>toda la información relevante</strong> del paciente al momento del ingreso.</p>
+          <p style="margin-top:10px;">Cada dimensión captura un dominio ortogonal de datos: perfil estático, evaluación fisiológica, demanda operativa y variables obstétricas. La estructura garantiza que ningún atributo relevante quede fuera del modelo matemático.</p>
+        </div>
+      </div>
+      <div class="math-card reveal" style="transition-delay:0.3s;">
+        <h4>Nota de Consistencia</h4>
+        <div class="math-body">
+          <p>$U$ describe todas las combinaciones <em>teóricamente</em> posibles entre los conjuntos de entrada, pero <strong>no todas</strong> representan estados clínicamente validos.</p>
+          <p style="margin-top:10px;">El sistema debe aplicar <strong>reglas de consistencia lógica</strong> para filtrar combinaciones biologicamente incompatibles antes de procesar la función maestra $T$.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 4: CONJUNTO A ===== -->
+<section class="slide" id="slide-4">
+  <div class="slide-num">Diapositiva <strong>04</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          Conjuntos de entrada
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Conjunto A: Perfil Estático</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Variables biológicas estables y el historial médico del paciente. Sirven de contexto para evaluar su estado actual y agrupan sexo, tramo etario y comorbilidades crónicas.</p>
+        <div class="math-card reveal" style="transition-delay:0.15s; text-align:center;">
+          <div class="formula-block">$$A = G \times E \times AM$$</div>
+        </div>
+        <div class="callout reveal" style="transition-delay:0.2s">
+          <strong>Por qué importa:</strong> organiza el historial clínico en una estructura binaria simple. Permite realizar operaciones rápidas (sumar bits para medir carga de enfermedad) o usar activadores lógicos para priorizar pacientes con riesgos específicos.
+        </div>
+      </div>
+      <div>
+        <div class="set-spec-card quad-a reveal" style="transition-delay:0.2s">
+          <div class="set-id" style="background:var(--blue-500);">G</div>
+          <h5>Género</h5>
+          <span class="formula-inline">$G = \{0, 1\}$</span>
+          <ul>
+            <li><strong>0</strong>: Femenino</li>
+            <li><strong>1</strong>: Masculino</li>
+          </ul>
+        </div>
+        <div class="set-spec-card quad-a reveal" style="transition-delay:0.25s; margin-top: 12px;">
+          <div class="set-id" style="background:var(--blue-500);">E</div>
+          <h5>Edad &middot; 7 tramos biológicos</h5>
+          <span class="formula-inline">$E = \{1, 2, 3, 4, 5, 6, 7\}$</span>
+          <ul>
+            <li><strong>1</strong> Neonato $[0,1)$ mes</li>
+            <li><strong>2</strong> Lactante $[1,12]$ meses</li>
+            <li><strong>3</strong> Pre-escolar $]1,5]$ años</li>
+            <li><strong>4</strong> Escolar $]5,12]$ años</li>
+            <li><strong>5</strong> Adolescente $]12,18[$ años</li>
+            <li><strong>6</strong> Adulto $[18,65[$ años</li>
+            <li><strong>7</strong> Adulto Mayor $\geq 65$ años</li>
+          </ul>
+        </div>
+        <div class="set-spec-card quad-a reveal" style="transition-delay:0.3s; margin-top: 12px;">
+          <div class="set-id" style="background:var(--blue-500);">AM</div>
+          <h5>Antecedentes Médicos &middot; Mascara de 10 bits</h5>
+          <span class="formula-inline">$AM = \{0,1\}^{10}$</span>
+          <ul>
+            <li>$b_1$ Diabetes &middot; $b_2$ Hipertension &middot; $b_3$ Inmunosupresion</li>
+            <li>$b_4$ Renal &middot; $b_5$ Insuf. Cardíaca &middot; $b_6$ EPOC/Asma</li>
+            <li>$b_7$ ACV &middot; $b_8$ Coagulacion &middot; $b_9$ Riesgo Psiquiatrico</li>
+            <li>$b_{10}$ Fragilidad o Dependencia Severa</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 5: CONJUNTO S ===== -->
+<section class="slide" id="slide-5">
+  <div class="slide-num">Diapositiva <strong>05</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col reversed">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Conjuntos de entrada
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Conjunto S: Evaluación Sintomatológica</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Variables dinámicas del estado físico agudo y motivo de consulta al ingreso. Integra mediciones fisiológicas objetivas con la percepción del dolor y la queja principal del paciente.</p>
+        <div class="math-card reveal" style="transition-delay:0.15s; text-align:center;">
+          <div class="formula-block">$$S = SV \times EN \times D \times MC$$</div>
+        </div>
+        <div class="callout amber reveal" style="transition-delay:0.2s">
+          <strong>Núcleo dinámico del modelo:</strong> captura el estado clínico inmediato. Al integrar lo objetivo con lo subjetivo, identifica riesgos que una sola variable por si sola no podria revelar.
+        </div>
+      </div>
+      <div>
+        <div class="set-spec-card quad-s reveal" style="transition-delay:0.2s">
+          <div class="set-id" style="background:#be185d;">SV</div>
+          <h5>Signos Vitales &middot; Tupla continua</h5>
+          <span class="formula-inline">$SV = (f_c, f_r, s_{pO_2}, t, t_{as})$</span>
+          <ul>
+            <li><strong>$f_c$</strong>: fc $\in \mathbb{N}_0$ con $0 \leq f_c \leq 300$ (lpm)</li>
+            <li><strong>$f_r$</strong>: fr $\in \mathbb{N}_0$ con $0 \leq f_r \leq 100$ (rpm)</li>
+            <li><strong>$s_{pO_2}$</strong>: spo2 $\in \mathbb{N}_0$ con $0 \leq s_{pO_2} \leq 100$ (%)</li>
+            <li><strong>$t$</strong>: temp $\in \mathbb{R}$ con $30 \leq t \leq 45$ (1 decimal)</li>
+            <li><strong>$t_{as}$</strong>: tas $\in \mathbb{N}_0$ con $0 \leq t_{as} \leq 250$ (mmHg)</li>
+          </ul>
+        </div>
+        <div class="set-spec-card quad-s reveal" style="transition-delay:0.25s; margin-top: 12px;">
+          <div class="set-id" style="background:#be185d;">EN</div>
+          <h5>Estado Neurológico &middot; Escala AVDI</h5>
+          <span class="formula-inline">$EN = \{1, 2, 3, 4\}$</span>
+          <ul>
+            <li><strong>1</strong> Alerta &middot; <strong>2</strong> Responde a la voz</li>
+            <li><strong>3</strong> Solo al dolor &middot; <strong>4</strong> Inconsciente</li>
+          </ul>
+        </div>
+        <div class="set-spec-card quad-s reveal" style="transition-delay:0.3s; margin-top: 12px;">
+          <div class="set-id" style="background:#be185d;">D</div>
+          <h5>Dolor subjetivo &middot; Escala 1-10</h5>
+          <span class="formula-inline">$D = \{1, 2, 3, 4, 5, 6, 7, 8, 9, 10\}$</span>
+        </div>
+        <div class="set-spec-card quad-s reveal" style="transition-delay:0.35s; margin-top: 12px;">
+          <div class="set-id" style="background:#be185d;">MC</div>
+          <h5>Motivo de Consulta &middot; 8 categorías</h5>
+          <span class="formula-inline">$MC = \{1, 2, 3, 4, 5, 6, 7, 8\}$</span>
+          <ul>
+            <li><strong>1</strong> Riesgo vital inminente &middot; <strong>2</strong> Cardio/Neuro</li>
+            <li><strong>3</strong> Trauma grave &middot; <strong>4</strong> Hemorragia/Abdomen agudo</li>
+            <li><strong>5</strong> Infeccioso/Fiebre &middot; <strong>6</strong> Trauma menor</li>
+            <li><strong>7</strong> Sintomatología general &middot; <strong>8</strong> Administrativo</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 6: R, O Y P ===== -->
+<section class="slide" id="slide-6">
+  <div class="slide-num">Diapositiva <strong>06</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Conjuntos restantes
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Demanda, Perfil Perinatal y Codominio</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Cerramos la especificación de los conjuntos de entrada con la dimensión operativa y perinatal, y declaramos formalmente el codominio de salida del sistema.</p>
+    <div class="set-spec-grid">
+      <div class="set-spec-card quad-r reveal" style="transition-delay:0.15s">
+        <div class="set-id" style="background:#b45309;">R</div>
+        <h5>Demanda de Recursos</h5>
+        <span class="formula-inline">$R = \{0, 1, 2\}$</span>
+        <ul>
+          <li><strong>0</strong>: Ningun recurso necesario</li>
+          <li><strong>1</strong>: Un recurso (radiografia, examen)</li>
+          <li><strong>2</strong>: Dos o más recursos combinados</li>
+        </ul>
+        <p style="margin-top:8px; color:var(--slate-500);">Ayuda a organizar la atención de pacientes sin riesgo vital, separando las categorías C3, C4 y C5 segun la complejidad proyectada.</p>
+      </div>
+      <div class="set-spec-card quad-o reveal" style="transition-delay:0.2s">
+        <div class="set-id" style="background:#047857;">O</div>
+        <h5>Perfil Perinatal (Obstétrico)</h5>
+        <span class="formula-inline">$O = \{0,1\}^3$</span>
+        <ul>
+          <li>$o_1$: Gestacion $\geq 35$ semanas</li>
+          <li>$o_2$: Contracciones activas</li>
+          <li>$o_3$: Sangrado obstétrico</li>
+        </ul>
+        <p style="margin-top:8px; color:var(--slate-500);">Protección inmediata del binomio madre-hijo. Si $g = 1$, se anula matemáticamente: $O = (0,0,0)$.</p>
+      </div>
+      <div class="set-spec-card quad-p reveal" style="transition-delay:0.25s">
+        <div class="set-id" style="background:#4338ca;">P</div>
+        <h5>Codominio de Salida &middot; Prioridades</h5>
+        <span class="formula-inline">$P = \{1, 2, 3, 4, 5\}$</span>
+        <ul>
+          <li><strong>1</strong> C1 Riesgo vital (atención inmediata)</li>
+          <li><strong>2</strong> C2 Urgencia ($< 30$ min)</li>
+          <li><strong>3</strong> C3 Mediano riesgo ($< 90$ min)</li>
+          <li><strong>4</strong> C4 Baja complejidad ($< 180$ min)</li>
+          <li><strong>5</strong> C5 Atención general (no urgente)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="priority-strip reveal" style="transition-delay:0.3s; margin-top: 24px;">
+      <div class="pseg c1">
+        <div class="pcode">C1</div>
+        <div class="pname">Riesgo vital</div>
+        <div class="ptime">Inmediato</div>
+      </div>
+      <div class="pseg c2">
+        <div class="pcode">C2</div>
+        <div class="pname">Urgencia</div>
+        <div class="ptime">$<$ 30 min</div>
+      </div>
+      <div class="pseg c3">
+        <div class="pcode">C3</div>
+        <div class="pname">Mediano riesgo</div>
+        <div class="ptime">$<$ 90 min</div>
+      </div>
+      <div class="pseg c4">
+        <div class="pcode">C4</div>
+        <div class="pname">Baja complejidad</div>
+        <div class="ptime">$<$ 180 min</div>
+      </div>
+      <div class="pseg c5">
+        <div class="pcode">C5</div>
+        <div class="pname">No urgente</div>
+        <div class="ptime">SAPU</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 7: Rper ===== -->
+<section class="slide" id="slide-7">
+  <div class="slide-num">Diapositiva <strong>07</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Restricciones de Integridad
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Dependencia Perinatal-Género</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">La relación de consistencia $\mathcal{R}_{per}$ filtra estados biologicamente imposibles antes del procesamiento de la función maestra $T$.</p>
+        <div class="math-card reveal" style="transition-delay:0.15s;">
+          <div class="formula-block">$$\mathcal{R}_{per} = \left\{ ((g, e, am), (o_1, o_2, o_3)) \in A \times O \mid (g = 1) \rightarrow (o_1 = 0 \land o_2 = 0 \land o_3 = 0) \right\}$$</div>
+        </div>
+        <p class="slide-body reveal" style="transition-delay:0.2s; margin-top:14px;"><strong>Significado:</strong> un par $(a, o)$ pertenece a $\mathcal{R}_{per}$ si y solo si, cuando el género es masculino ($g = 1$), el perfil perinatal es obligatoriamente nulo. Actua como un filtro sobre $U$ que elimina combinaciones incompatibles antes de evaluar $T$.</p>
+      </div>
+      <div>
+        <div class="math-card reveal" style="transition-delay:0.25s;">
+          <h4>Análisis de Propiedades</h4>
+          <div class="math-body">
+            <p style="margin-bottom:10px;">
+              <span class="prop-badge false">Irreflexiva</span>
+              <span class="prop-badge false">No Simétrica</span>
+              <span class="prop-badge false">No Transitiva</span>
+            </p>
+            <ul style="list-style:none; padding:0;">
+              <li style="padding-left:0; margin-bottom:8px;"><strong>Irreflexiva:</strong> $A$ y $O$ son conjuntos disjuntos; ningún elemento puede relacionarse consigo mismo bajo el producto $A \times O$.</li>
+              <li style="padding-left:0; margin-bottom:8px;"><strong>No Simétrica:</strong> $(a, o) \in \mathcal{R}_{per}$ no implica $(o, a) \in \mathcal{R}_{per}$ porque las tuplas invertidas no corresponden al dominio del producto cartesiano.</li>
+              <li style="padding-left:0;"><strong>No Transitiva:</strong> la heterogeneidad estructural impide encadenar un tercer elemento de un conjunto diferente al de la primera tupla.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="math-card reveal" style="transition-delay:0.3s; margin-top:16px;">
+          <h4>Ejemplo de Filtrado</h4>
+          <div class="math-body">
+            <p><strong>Valido:</strong> $\left((1, 6, (0,1,0,\dots,0)), (0,0,0)\right) \in \mathcal{R}_{per}$ &middot; paciente masculino, adulto, hipertenso, con perfil obstétrico nulo.</p>
+            <p style="margin-top:6px;"><strong>Inválido:</strong> $\left((1, 6, (0,1,0,\dots,0)), (1,0,1)\right) \notin \mathcal{R}_{per}$ &middot; estado inconsistente (hombre con gestación activa) rechazado por el sistema.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 8: Rfrag ===== -->
+<section class="slide" id="slide-8">
+  <div class="slide-num">Diapositiva <strong>08</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col reversed">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Modificadores Dinámicos
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Impacto de Antecedentes por Fragilidad</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">La relación $\mathcal{R}_{frag} \subseteq A \times S$ actua como un modificador dinámico de los umbrales clínicos cuando se activa el bit de fragilidad geriatrica ($b_{10} = 1$).</p>
+        <div class="math-card reveal" style="transition-delay:0.15s;">
+          <div class="formula-block">$$\mathcal{R}_{frag} = \left\{ (a, s) \in A \times S \mid (\exists i \in \{1,\dots,10\} : b_i(a) = 1) \land (f_{RSV}(SV, e(a)) \geq 1) \right\}$$</div>
+        </div>
+        <p class="slide-body reveal" style="transition-delay:0.2s; margin-top:14px;"><strong>Regla de Ajuste:</strong> si $b_{10} = 1$, los umbrales superiores para el <strong>Riesgo 2</strong> se vuelven un 20% más estrictos:</p>
+        <div class="math-card reveal" style="transition-delay:0.25s; text-align:center;">
+          <div class="formula-block">$$\text{Umbral}_{ajustado} = \text{Umbral}_{original} \times 0.8$$</div>
+        </div>
+        <div class="callout amber reveal" style="margin-top:14px; transition-delay:0.3s">
+          <strong>Propiedad:</strong> es <em>irreflexiva</em> ($A$ y $S$ son disjuntos) y <em>asimetrica</em>: el flujo clínico va unidireccionalmente del historial hacia la reinterpretacion fisiológica.
+        </div>
+      </div>
+      <div class="visual reveal" style="transition-delay:0.3s">
+        <div class="threshold-vis">
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--slate-500); margin-bottom: 6px; font-weight: 600;">
+            <span>Normal</span><span>Moderado</span><span style="color:var(--red-500)">Critico</span>
+          </div>
+          <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:140px; display:block;">
+            <defs>
+              <linearGradient id="threshGrad" x1="0" x2="1">
+                <stop offset="0%" stop-color="#ecfdf5"/>
+                <stop offset="65%" stop-color="#fffbeb"/>
+                <stop offset="100%" stop-color="#fef2f2"/>
+              </linearGradient>
+            </defs>
+            <rect x="20" y="30" width="360" height="30" rx="6" fill="url(#threshGrad)" stroke="#e2e8f0" stroke-width="1"/>
+
+            <line x1="248" y1="20" x2="248" y2="70" stroke="#0a1929" stroke-width="2"/>
+            <rect x="222" y="2" width="52" height="18" rx="4" fill="#0a1929"/>
+            <text x="248" y="15" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="white" text-anchor="middle">Umbral: 110</text>
+
+            <line x1="180" y1="20" x2="180" y2="70" stroke="#3b82f6" stroke-width="2.5"/>
+            <rect x="152" y="2" width="56" height="18" rx="4" fill="#3b82f6"/>
+            <text x="180" y="15" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="white" text-anchor="middle">Fragil: 88</text>
+
+            <line x1="242" y1="60" x2="242" y2="100" stroke="#0a1929" stroke-width="3"/>
+            <polygon points="238,95 246,95 242,103" fill="#0a1929"/>
+            <rect x="220" y="105" width="48" height="18" rx="4" fill="#0a1929"/>
+            <text x="244" y="118" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="white" text-anchor="middle">108 lpm</text>
+
+            <line x1="20" y1="80" x2="380" y2="80" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2 3"/>
+            <text x="20" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#64748b">0</text>
+            <text x="378" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" fill="#64748b" text-anchor="end">200 lpm</text>
+          </svg>
+          <p style="font-size: 0.8rem; color: var(--slate-600); text-align: center; margin-top: 8px; line-height: 1.5;">
+            <strong>Sin fragilidad:</strong> 108 lpm &lt; 110 &rarr; Moderado.<br>
+            <strong style="color:var(--blue-500)">Con $b_{10}=1$:</strong> 108 &gt; 88 &rarr; <strong>Riesgo 2 inmediato</strong>.
+          </p>
+        </div>
+        <div class="viz-caption">Modificador dinámico: umbral ajustado por fragilidad</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 9: FUNCION MAESTRA T ===== -->
+<section class="slide" id="slide-9">
+  <div class="slide-num">Diapositiva <strong>09</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Álgebra de Funciones
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Función Maestra de Triage $T$</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">La función consolidada $T$ mapea cualquier estado del paciente en el Universo $U$ hacia un único nivel de prioridad en $P$, cumpliendo existencia y unicidad.</p>
+    <div class="math-card formula-center reveal" style="transition-delay:0.15s;">
+      <div class="formula-block">$$T : U \rightarrow P$$</div>
+    </div>
+    <div class="two-col" style="margin-top: 28px; gap: 40px;">
+      <div class="math-card reveal" style="transition-delay:0.2s;">
+        <h4>Condicion de Existencia y Unicidad</h4>
+        <div class="math-body">
+          <p>Todo paciente que ingresa debe recibir una, y <strong>solo una</strong>, categoría de prioridad. El sistema garantiza esta propiedad mediante la <strong>lógica de dominancia en cascada</strong> que evalua $C_1 \rightarrow C_2 \rightarrow C_3 \rightarrow C_4 \rightarrow C_5$.</p>
+          <p style="margin-top:10px;">El resultado es univoco: la primera condicion satisfecha determina la prioridad del paciente, dejando $C_5$ como caso residual por descarte.</p>
+        </div>
+      </div>
+      <div class="math-card reveal" style="transition-delay:0.25s;">
+        <h4>Análisis Algebraico de Propiedades</h4>
+        <div class="math-body">
+          <table class="truth-table">
+            <thead><tr><th>Propiedad</th><th>Valor</th><th>Justificacion</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Inyectiva</strong></td>
+                <td><span class="prop-badge false">No</span></td>
+                <td>Multiples tuplas de estados criticos distintos en $U$ pueden mapear al mismo nivel de gravedad en $P$.</td>
+              </tr>
+              <tr>
+                <td><strong>Sobreyectiva</strong></td>
+                <td><span class="prop-badge true">Si</span></td>
+                <td>El codominio esta diseni­ado para que las cinco categorías $C_1, C_2, C_3, C_4, C_5$ sean alcanzables.</td>
+              </tr>
+              <tr>
+                <td><strong>Biyectiva</strong></td>
+                <td><span class="prop-badge false">No</span></td>
+                <td>Al no ser inyectiva, carece de inversa directa: conocer $p$ no reconstruye $u$.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="callout reveal" style="transition-delay:0.3s; margin-top:20px;">
+      <strong>Conclusión:</strong> $T$ es <strong>sobreyectiva pero no inyectiva</strong>. Por tanto, no es biyectiva y no posee función inversa. Conocer la categoría de salida no permite reconstruir el estado exacto del paciente.
+    </div>
+  </div>
+</section>
+<!-- ===== SLIDE 10: fCM ===== -->
+<section class="slide" id="slide-10">
+  <div class="slide-num">Diapositiva <strong>10</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          Función intermedia
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Carga de Morbilidad $f_{CM}$</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Cuantifica la complejidad médica previa procesando la máscara de 10 bits de antecedentes. La salida discreta alimenta la decisión de prioridad $C_3$ cuando es $\geq 3$.</p>
+        <div class="math-card reveal" style="transition-delay:0.15s; text-align:center;">
+          <div class="formula-block">$$f_{CM} : AM \rightarrow \{0, 1, 2, 3, 4, 5, 6, 7, 8\}$$</div>
+        </div>
+        <div class="math-card reveal" style="transition-delay:0.2s; text-align:center; margin-top:14px;">
+          <div class="formula-block">$$f_{CM}(am) = \sum_{i=1}^{8} b_i$$</div>
+        </div>
+      </div>
+      <div>
+        <div class="math-card reveal" style="transition-delay:0.2s;">
+          <h4>Propiedades Algebraicas</h4>
+          <div class="math-body">
+            <p style="margin-bottom:10px;">
+              <span class="prop-badge false">No Inyectiva</span>
+              <span class="prop-badge true">Sobreyectiva</span>
+              <span class="prop-badge false">No Biyectiva</span>
+            </p>
+            <p>Distintas combinaciones de enfermedades pueden sumar el mismo valor (por ejemplo, solo diabetes o solo asma ambas dan $f_{CM} = 1$).</p>
+            <p style="margin-top:8px;">Es posible alcanzar cualquier valor entre 0 y 8 variando los bits de entrada.</p>
+          </div>
+        </div>
+        <div class="math-card reveal" style="transition-delay:0.25s; margin-top:14px;">
+          <h4>Interpretación Clínica</h4>
+          <div class="math-body">
+            <p><strong>Paciente A</strong> con diabetes + hipertension: $b_1 = 1, b_2 = 1 \Rightarrow f_{CM} = 2$.</p>
+            <p style="margin-top:6px;"><strong>Paciente B</strong> con tres comorbilidades: $b_1 = b_3 = b_5 = 1 \Rightarrow f_{CM} = 3$.</p>
+            <p style="margin-top:10px;"><strong>Umbral $C_3$:</strong> $f_{CM} \geq 3$ sugiere prioridad $C_3$ (mediano riesgo) por carga cronica elevada.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 11: fRSV - Definicion + Tabla FC ===== -->
+<section class="slide" id="slide-11">
+  <div class="slide-num">Diapositiva <strong>11</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col" style="grid-template-columns: 1fr 1.2fr; align-items: start;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Función Parametrizada
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Riesgo de Signos Vitales $f_{RSV}$</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Motor de discretización que adapta la interpretación de los signos vitales según la edad. Transforma valores numéricos continuos en niveles lógicos de riesgo, implementando la <strong>regla del máximo fisiológico</strong>.</p>
+        <div class="math-card formula-center reveal" style="transition-delay:0.15s;">
+          <div class="formula-block">$$f_{RSV} : SV \times E \rightarrow \{0, 1, 2\}$$</div>
+        </div>
+        <div class="math-card reveal" style="transition-delay:0.2s; text-align:center;">
+          <div class="formula-block">$$f_{RSV} = \max(\text{riesgo}_{f_c},\; \text{riesgo}_{t_{as}},\; \text{riesgo}_{s_{pO_2}},\; \text{riesgo}_{t})$$</div>
+        </div>
+        <div class="callout reveal" style="transition-delay:0.25s; flex: 1;">
+          <strong>Regla del máximo:</strong> si un paciente tiene todos los signos en 0 pero la saturación en 2, la función devuelve 2. <strong>No es inyectiva</strong> y <strong>si es sobreyectiva</strong> (los tres niveles son alcanzables).
+        </div>
+        <div class="reveal" style="transition-delay:0.3s; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem; color: var(--slate-600);">
+          <span class="prop-badge false">No Inyectiva</span>
+          <span class="prop-badge true">Sobreyectiva</span>
+          <span style="color: var(--slate-500);">Codominio: $\{0, 1, 2\}$</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: flex-start;">
+        <div class="math-card reveal" style="transition-delay:0.25s;">
+          <h4>Tabla de Discretización: Frecuencia Cardíaca ($f_c$)</h4>
+          <table class="bio-table">
+            <thead>
+              <tr><th>Edad (E)</th><th>Tramo</th><th>Normal (0)</th><th>Moderado (1)</th><th>Critico (2)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>E=1</td><td>Neonato</td><td><span class="bio-tag norm">100-160</span></td><td><span class="bio-tag mod">161-180</span></td><td><span class="bio-tag crit">&lt;90 / &gt;180</span></td></tr>
+              <tr><td>E=2</td><td>Lactante</td><td><span class="bio-tag norm">90-150</span></td><td><span class="bio-tag mod">151-170</span></td><td><span class="bio-tag crit">&lt;80 / &gt;170</span></td></tr>
+              <tr><td>E=3</td><td>Preescolar</td><td><span class="bio-tag norm">80-120</span></td><td><span class="bio-tag mod">121-140</span></td><td><span class="bio-tag crit">&lt;70 / &gt;140</span></td></tr>
+              <tr><td>E=4</td><td>Escolar</td><td><span class="bio-tag norm">75-115</span></td><td><span class="bio-tag mod">116-130</span></td><td><span class="bio-tag crit">&lt;65 / &gt;130</span></td></tr>
+              <tr><td>E=5</td><td>Adolescente</td><td><span class="bio-tag norm">60-100</span></td><td><span class="bio-tag mod">101-120</span></td><td><span class="bio-tag crit">&lt;55 / &gt;120</span></td></tr>
+              <tr><td>E=6</td><td>Adulto</td><td><span class="bio-tag norm">60-100</span></td><td><span class="bio-tag mod">101-120</span></td><td><span class="bio-tag crit">&lt;50 / &gt;120</span></td></tr>
+              <tr><td>E=7</td><td>Adulto Mayor</td><td><span class="bio-tag norm">60-90</span></td><td><span class="bio-tag mod">91-110</span></td><td><span class="bio-tag crit">&lt;50 / &gt;110</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 11b: fRSV - Subfunciones + Modificador ===== -->
+<section class="slide" id="slide-12">
+  <div class="slide-num">Diapositiva <strong>12</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Subfunciones de $f_{RSV}$
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Discretización por signo vital y modificador $b_{10}$</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Las subfunciones $f_{RSV}^{tas}$, $f_{RSV}^{spo_2}$ y $f_{RSV}^{t}$ usan criterios transversales. El bit de fragilidad $b_{10} = 1$ activa un ajuste dinámico del 20% sobre los umbrales.</p>
+    <div class="set-spec-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="math-card reveal" style="transition-delay:0.15s">
+        <h4>Tension Arterial ($t_{as}$)</h4>
+        <div class="math-body" style="font-size: 0.78rem;">
+          <p><strong>0 (Normal):</strong> dentro del rango por edad.</p>
+          <p style="margin-top:4px;"><strong>1 (Moderado):</strong> fuera de rango, sin shock.</p>
+          <p style="margin-top:4px;"><strong>2 (Critico):</strong> shock o crisis hipertensiva.</p>
+        </div>
+      </div>
+      <div class="math-card reveal" style="transition-delay:0.2s">
+        <h4>Saturación $O_2$ ($s_{pO_2}$)</h4>
+        <div class="math-body" style="font-size: 0.78rem;">
+          <p><strong>0:</strong> $s_{pO_2} \geq 95$%</p>
+          <p style="margin-top:4px;"><strong>1:</strong> $92 \leq s_{pO_2} \leq 94$%</p>
+          <p style="margin-top:4px;"><strong>2:</strong> $s_{pO_2} < 92$%</p>
+        </div>
+      </div>
+      <div class="math-card reveal" style="transition-delay:0.25s">
+        <h4>Temperatura ($t$)</h4>
+        <div class="math-body" style="font-size: 0.78rem;">
+          <p><strong>0:</strong> $36.0 \leq t \leq 37.5$ &deg;C</p>
+          <p style="margin-top:4px;"><strong>1:</strong> $37.5 < t \leq 39.0$ &deg;C</p>
+          <p style="margin-top:4px;"><strong>2:</strong> $t > 39.0$ o $t < 35.0$ &deg;C</p>
+        </div>
+      </div>
+    </div>
+    <div class="math-card reveal" style="margin-top:14px; transition-delay:0.3s">
+      <h4>Modificador por Fragilidad o Dependencia (Bit 10)</h4>
+      <div class="math-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+        <div>
+          <p>Si el paciente presenta <strong>$b_{10} = 1$</strong> en su tupla de antecedentes, el sistema asume una <strong>disminucion critica de la reserva fisiológica</strong>.</p>
+          <p style="margin-top:8px;">Los umbrales superiores para el Riesgo 2 se vuelven un <strong>20% más estrictos</strong>:</p>
+          <div style="text-align:center; margin-top: 8px;">
+            <span style="display:inline-block; font-family: var(--serif); font-weight: 600; font-size: 1.05rem; background: var(--slate-50); padding: 6px 14px; border-radius: 6px; color: var(--navy);">$$\text{Umbral}_{ajustado} = \text{Umbral}_{original} \times 0.8$$</span>
+          </div>
+        </div>
+        <div style="background: var(--blue-50); border-radius: var(--radius-md); padding: 14px 16px; border-left: 3px solid var(--blue-500);">
+          <p style="font-size: 0.85rem; color: var(--slate-700); line-height: 1.5;"><strong>Ejemplo:</strong> Adulto Mayor (E=7), Riesgo 2 de fc inicia en <strong>110 lpm</strong>. Con $b_{10} = 1$ el sistema recalcula: $110 \times 0.8 =$ <strong>88 lpm</strong>. Esto permite intervencion temprana en pacientes vulnerables que se descompensan con valores aparentemente normales.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 13: fRES ===== -->
+<section class="slide" id="slide-13">
+  <div class="slide-num">Diapositiva <strong>13</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Función Biyectiva
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Mapeo de Recursos $f_{RES}$</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">Discrimina la prioridad de pacientes estables segun la complejidad del tratamiento proyectado. Es la única función intermedia que resulta <strong>biyectiva</strong> en su dominio, garantizando una correspondencia uno-a-uno.</p>
+        <div class="math-card formula-center reveal" style="transition-delay:0.15s;">
+          <div class="formula-block">$$f_{RES} : R \rightarrow \{3, 4, 5\}$$</div>
+        </div>
+        <div class="math-card reveal" style="transition-delay:0.2s; margin-top:14px;">
+          <h4>Tabla de Operación</h4>
+          <table class="bio-table" style="margin-top: 0;">
+            <thead>
+              <tr><th>$r$ (demanda)</th><th>Salida</th><th>Categoría</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>$r = 2$</td><td><strong>3</strong></td><td><span class="bio-tag crit">C3 &middot; Mediano Riesgo</span></td></tr>
+              <tr><td>$r = 1$</td><td><strong>4</strong></td><td><span class="bio-tag mod">C4 &middot; Baja Complejidad</span></td></tr>
+              <tr><td>$r = 0$</td><td><strong>5</strong></td><td><span class="bio-tag norm">C5 &middot; No Urgente</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="math-card reveal" style="transition-delay:0.2s;">
+          <h4>Propiedades Algebraicas</h4>
+          <div class="math-body">
+            <p style="margin-bottom:10px;">
+              <span class="prop-badge true">Inyectiva</span>
+              <span class="prop-badge true">Sobreyectiva</span>
+              <span class="prop-badge true">Biyectiva</span>
+            </p>
+            <p><strong>Inyectiva:</strong> cada cantidad de recursos tiene un único nivel de prioridad asignado. No existe ambiguedad en el mapeo $r \mapsto C_i$.</p>
+            <p style="margin-top:8px;"><strong>Sobreyectiva:</strong> los tres elementos $\{3, 4, 5\}$ son alcanzables desde el dominio $R$.</p>
+            <p style="margin-top:8px;"><strong>Biyectiva:</strong> al ser ambas, $f_{RES}$ admite función inversa $f_{RES}^{-1}$ que reconstruye $r$ a partir de la prioridad de salida dentro de este subgrupo.</p>
+          </div>
+        </div>
+        <div class="callout reveal" style="margin-top:14px; transition-delay:0.25s">
+          <strong>Importancia operativa:</strong> cuando el resto de funciones ($f_{RSV} = 0$, $f_{CM} < 3$) señalan estabilidad clinica, $f_{RES}$ es la unica fuente de decision para $C_3$, $C_4$ y $C_5$.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 13: ALFABETOS ===== -->
+<section class="slide" id="slide-14">
+  <div class="slide-num">Diapositiva <strong>14</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow reveal">
+          <svg viewBox="0 0 24 24"><path d="M4 7V4h20v3"/><path d="M9 20h10"/><path d="M12 4v16"/></svg>
+          Teoría de Lenguajes
+        </span>
+        <h2 class="reveal" style="transition-delay:0.05s">Alfabetos del Sistema</h2>
+        <p class="slide-body reveal" style="transition-delay:0.1s">El computador no puede procesar objetos médicos abstractos directamente. Por eso definimos un <strong>lenguaje formal</strong> que traduce las condiciones del paciente en cadenas de caracteres legibles, usando el simbolo <code>#</code> como delimitador universal.</p>
+        <div class="math-card reveal" style="transition-delay:0.15s; text-align:center;">
+          <div class="formula-block">$$\Sigma = \Sigma_1 \cup \Sigma_3$$</div>
+        </div>
+        <div class="callout amber reveal" style="margin-top:14px; transition-delay:0.2s">
+          <strong>Por qué necesitamos alfabetos:</strong> la abstracción médica (signos vitales, antecedentes, perfiles) debe traducirse en cadenas de caracteres sobre un alfabeto finito para que los autómatas finitos puedan validarlas sintácticamente antes del cómputo lógico.
+        </div>
+      </div>
+      <div>
+        <div class="lang-block reveal" style="transition-delay:0.2s">
+          <h5>$\Sigma_1$ &middot; Alfabeto Decimal</h5>
+          <div class="formula">$\Sigma_1 = \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\}$</div>
+          <p>Codifica valores numericos como frecuencia cardíaca, presión arterial, edad, prioridad de salida y cualquier constante decimal del sistema.</p>
+        </div>
+        <div class="lang-block reveal" style="transition-delay:0.25s">
+          <h5>$\Sigma_2$ &middot; Alfabeto Binario</h5>
+          <div class="formula">$\Sigma_2 = \{0, 1\}$</div>
+          <p>Codifica bits lógicos de las mascaras de antecedentes médicos y del perfil perinatal. No forma parte de $\Sigma$ global porque las cadenas binarias se manejan en sus propios automatas.</p>
+        </div>
+        <div class="lang-block reveal" style="transition-delay:0.3s">
+          <h5>$\Sigma_3$ &middot; Delimitador Posicional</h5>
+          <div class="formula">$\Sigma_3 = \{\#\}$</div>
+          <p>El simbolo <code>#</code> actua como separador universal. Permite que el parser reconozca secuencialmente el fin de una variable y el inicio de otra dentro de la macrocadena.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 15: LENGUAJES CLINICOS (LPER, LCM, LRES) ===== -->
+<section class="slide" id="slide-15">
+  <div class="slide-num">Diapositiva <strong>15</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      Especificación de Lenguajes
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Lenguajes Clínicos Calculados</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Cada módulo del sistema opera sobre un lenguaje formal definido por comprension. Estos lenguajes son las <strong>entradas sintácticas</strong> que los autómatas finitos validaran antes del cómputo lógico.</p>
+    <div class="lang-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="lang-card acc reveal" style="transition-delay:0.15s">
+        <h5>$L_{PER}$ &middot; Lenguaje Perinatal</h5>
+        <div class="lang-formula">$L_{PER} = \Sigma_2^3$</div>
+        <div class="lang-examples">
+          <strong>Cadenas aceptadas</strong>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'000'</code> &middot; sin síntomas perinatales</div>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'110'</code> &middot; gestacion $\geq 35$ sem + contracciones</div>
+          <strong>Cadenas rechazadas</strong>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'11'</code> &middot; longitud insuficiente</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'00E'</code> &middot; simbolo ajeno a $\Sigma_2$</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>$\varepsilon$</code> &middot; cadena vacia</div>
+        </div>
+      </div>
+      <div class="lang-card acc reveal" style="transition-delay:0.2s">
+        <h5>$L_{CM}$ &middot; Carga de Morbilidad</h5>
+        <div class="lang-formula">$L_{CM} = \Sigma_2^8$</div>
+        <div class="lang-examples">
+          <strong>Cadenas aceptadas</strong>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'00000000'</code> &middot; sin comorbilidades</div>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'11000000'</code> &middot; diabetes + hipertension</div>
+          <strong>Cadenas rechazadas</strong>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'11'</code> &middot; longitud $< 8$</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'0101010A'</code> &middot; simbolo ajeno</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>$\varepsilon$</code> &middot; cadena vacia</div>
+        </div>
+      </div>
+      <div class="lang-card acc reveal" style="transition-delay:0.3s">
+        <h5>$L_{RES}$ &middot; Demanda de Recursos</h5>
+        <div class="lang-formula">$L_{RES} = \{ \text{'0'}, \text{'1'}, \text{'2'} \}$</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 15b: LENGUAJES DE VALIDACION Y MACRO-CADENA ===== -->
+<section class="slide" id="slide-15b">
+  <div class="slide-num">Diapositiva <strong>16</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      Especificación de Lenguajes
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Lenguajes de Validación y Macro-Cadena</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Los lenguajes $L_{RSV}$ y $L_T$ son las <strong>entradas sintácticas</strong> más exigentes del sistema: el primero requiere cinco delimitadores posicionales, y el segundo integra la macro-cadena completa con la salida de todos los autómatas intermedios.</p>
+    <div class="set-spec-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="lang-card acc reveal" style="transition-delay:0.15s">
+        <h5>$L_{RSV}$ &middot; Riesgo Signos Vitales</h5>
+        <div class="lang-formula">$b_{10} \# f_c \# t_{as} \# s_{pO_2} \# t_e \# t_d$</div>
+        <div class="lang-examples">
+          <strong>Cadenas aceptadas</strong>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'0#108#145#96#37#5'</code> &middot; t = 37.5&deg;C</div>
+          <div class="ex-row ok"><span class="tag">OK</span> <code>'1#90#120#95#36#0'</code> &middot; t = 36.0&deg;C</div>
+          <strong>Cadenas rechazadas</strong>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'010'</code> &middot; sin delimitadores</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'1#99#95#35'</code> &middot; campos incompletos</div>
+          <div class="ex-row no"><span class="tag">NO</span> <code>'1##90#120#95#36#0'</code> &middot; delimitador duplicado</div>
+        </div>
+      </div>
+      <div class="lang-card acc reveal" style="transition-delay:0.2s">
+        <h5>$L_T$ &middot; Lenguaje Maestro de Triage</h5>
+        <div class="lang-formula">$\omega \in EN \# MC \# f_c \# f_r \# f_{RSV} \# d \# b_9 \# o_1 \# o_2 \# o_3 \# f_{CM} \# f_{RES}$</div>
+        <div class="lang-examples">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <strong>Cadena aceptada (caso de prueba)</strong>
+              <div class="ex-row ok"><span class="tag">OK</span> <code>'1#7#108#24#2#4#0#0#0#0#1#3'</code></div>
+              <p style="font-family: var(--serif); font-size: 0.78rem; color: var(--slate-500); margin-top: 6px; line-height: 1.45;">Parsing: EN=1, MC=7, fc=108, fr=24, fRSV=2, d=4, b9=0, O=(0,0,0), fCM=1, fRES=3.</p>
+            </div>
+            <div>
+              <strong>Cadenas rechazadas</strong>
+              <div class="ex-row no"><span class="tag">NO</span> <code>'273'</code> &middot; sintaxis no segmentable</div>
+              <div class="ex-row no"><span class="tag">NO</span> <code>'1#7#105#50#1#3#1#0#0#0#2'</code> &middot; falta campo final</div>
+              <div class="ex-row no"><span class="tag">NO</span> <code>$\varepsilon$</code> &middot; cadena vacia</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 17: AUTOMATAS I (Mper, MCM, Msv) ===== -->
+<section class="slide" id="slide-17">
+  <div class="slide-num">Diapositiva <strong>17</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Motor Sintáctico
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Autómatas Finitos: Parsing Intermedio</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Los autómatas finitos deterministas (AFD) operan como el motor sintáctico que valida y parsea las cadenas de los lenguajes $L_{PER}$, $L_{CM}$ y $L_{RSV}$ antes de su procesamiento lógico.</p>
+    <div class="set-spec-grid">
+      <div class="placeholder-frame dense reveal" style="transition-delay:0.15s">
+        <div class="ph-head">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div>
+            <h4>$M_{per}$ &middot; Validación Perinatal</h4>
+            <small>AFD &middot; $L_{PER} = \Sigma_2^3$</small>
+          </div>
+        </div>
+        <p>Verifica que la cadena binaria de 3 bits del perfil perinatal sea valida. Estado final $q_5$ aceptado; estado $q_6$ (sumidero) rechazado. $Q_{per}$ contiene 9 estados; $\Sigma_{per} = \{0, 1, \#\}$ para cadenas extendidas con delimitador género.</p>
+        <div class="ph-slot">[ Diagrama de transiciones &middot; $M_{per}$ ]</div>
+      </div>
+      <div class="placeholder-frame dense reveal" style="transition-delay:0.2s">
+        <div class="ph-head">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+          </div>
+          <div>
+            <h4>$M_{CM}$ &middot; Carga de Morbilidad</h4>
+            <small>AFD Compuesto &middot; $L_{CM} = \Sigma_2^8$</small>
+          </div>
+        </div>
+        <p>Dos autómatas en cascada. $M_{CM-1}$ valida longitud exacta de 8 bits. $M_{CM-2}$ confirma que al menos 3 bits sean positivos. Expresión regular equivalente: <code>^(?=^[01]{8}$)(?:.*1.*){3}</code>.</p>
+        <div class="ph-slot">[ Tabla de estados $M_{CM-1}$ &middot; $M_{CM-2}$ ]</div>
+      </div>
+      <div class="placeholder-frame dense reveal" style="transition-delay:0.25s">
+        <div class="ph-head">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <h4>$M_{sv}$ &middot; Signos Vitales</h4>
+            <small>AFD Subdividido &middot; $L_{RSV}$</small>
+          </div>
+        </div>
+        <p>$M_{sv-1}$ valida el formato de entrada con cinco delimitadores (6 campos numericos). $M_{sv-2}$ evalua el vector de riesgos $\{0, 1, 2\}^4$ para emitir la salida de $f_{RSV}$.</p>
+        <div class="ph-slot">[ Tabla de estados $M_{sv-1}$ &middot; $M_{sv-2}$ ]</div>
+      </div>
+    </div>
+    <div class="callout reveal" style="margin-top: 18px; transition-delay:0.3s">
+      <strong>Sección en desarrollo:</strong> los diagramas de transiciones y tablas de estados definitivos se integrarán en estos contenedores pre-maquetados sin alterar la estructura visual. La paleta y tipografía ya están fijadas.
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 16: AUTOMATAS II (MRES, MT) ===== -->
+<section class="slide" id="slide-18">
+  <div class="slide-num">Diapositiva <strong>18</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Automata Maestro
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">$M_{RES}$ y el Autómata Maestro $M_T$</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">El sistema cierra su motor sintáctico con el autómata de recursos y un autómata finito no-determinista (AFND) que integra todos los modulos para emitir la prioridad final.</p>
+    <div class="set-spec-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="placeholder-frame dense reveal" style="transition-delay:0.15s">
+        <div class="ph-head">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+          <div>
+            <h4>$M_{RES}$ &middot; Validación de Recursos</h4>
+            <small>AFD &middot; $L_{RES} = \{\text{'0'}, \text{'1'}, \text{'2'}\}$</small>
+          </div>
+        </div>
+        <p>Cadena de exactamente un carácter. Estado inicial $q_0$; transiciones directas a $q_1, q_2, q_3$ segun símbolo leído. Cualquier transición no válida cae al sumidero $q_4$. Estados finales: $\{q_1, q_2, q_3\}$, mapeados a $C_5, C_4, C_3$ respectivamente.</p>
+        <div class="ph-slot">[ Tabla de transiciones $M_{RES}$ ]</div>
+      </div>
+      <div class="placeholder-frame dense reveal" style="transition-delay:0.2s">
+        <div class="ph-head">
+          <div class="ph-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <h4>$M_T$ &middot; Autómata Maestro de Triage</h4>
+            <small>AFND &middot; $L_T$ &middot; 30 estados</small>
+          </div>
+        </div>
+        <p>AFND que procesa la macrocadena: $EN \# MC \# f_c \# f_r \# M_{sv-1}M_{sv-2} \# D \# b_9 \# M_{per} \# M_{CM-1}M_{CM-2} \# MC \# M_{RES}$. Expresión regular: <code>^[1-4](?:\#[0-9]+){2}\#1[012]\#(?:[0-9]|10)(?:\#[01]){2}\#1[01]\#[1-8]\#[345]$</code>. Al finalizar elige el estado activo final con mayor prioridad, salvo que $q_{err}$ se encuentre activo.</p>
+        <div class="ph-slot">[ Tabla de estados $\Delta_T$ &middot; Diagrama $M_T$ ]</div>
+      </div>
+    </div>
+    <div class="callout amber reveal" style="margin-top: 18px; transition-delay:0.3s">
+      <strong>Integración modular:</strong> $M_T$ no reimplementa la lógica; <em>delega</em> la validación sintáctica a $M_{per}$, $M_{CM}$, $M_{sv}$ y $M_{RES}$, y solo despues aplica la cascada $C_1 \rightarrow C_5$. Así, agregar nuevos automatas no rompe la composición.
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 17: CASO PRACTICO ===== -->
+<section class="slide" id="slide-19">
+  <div class="slide-num">Diapositiva <strong>19</strong> / 20</div>
+  <div class="slide-inner">
+    <span class="eyebrow reveal">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Caso de Prueba
+    </span>
+    <h2 class="reveal" style="transition-delay:0.05s">Caso Unificado: Señal Sutil, Impacto Real</h2>
+    <p class="slide-subtitle reveal" style="transition-delay:0.1s">Paciente de 70 años, hipertensa, con fragilidad ($b_{10} = 1$). FC = 108 lpm, MC = 7 (General), requiere 2 recursos. Evaluamos el caso completo a traves del motor.</p>
+    <div class="case-summary reveal" style="transition-delay:0.15s">
+      <h5>Datos de entrada &middot; Tupla $u \in U$</h5>
+      <div>
+        <div class="case-row"><strong>Género</strong><span>$g = 0$ (Femenino)</span></div>
+        <div class="case-row"><strong>Edad</strong><span>$E = 7$ (Adulto Mayor)</span></div>
+        <div class="case-row"><strong>Antecedentes AM</strong><span>$(0, 1, 0, 0, 0, 0, 0, 0, 0, 1)$</span></div>
+        <div class="case-row"><strong>Signos vitales SV</strong><span>fc=108, tas=145, spo2=96, t=37.5</span></div>
+        <div class="case-row"><strong>Estado neurológico</strong><span>EN = 1 (Alerta)</span></div>
+        <div class="case-row"><strong>Dolor / Motivo</strong><span>D = 4, MC = 7 (General)</span></div>
+      </div>
+      <div>
+        <div class="case-row"><strong>Recursos</strong><span>$r = 2$ (dos o más)</span></div>
+        <div class="case-row"><strong>Perfil perinatal</strong><span>$O = (0, 0, 0)$</span></div>
+        <div class="case-row"><strong>$f_{CM}$</strong><span>1 (&lt; 3, baja morbilidad)</span></div>
+        <div class="case-row"><strong>$f_{RSV}$ (base)</strong><span>1 (moderado, taqui. leve)</span></div>
+        <div class="case-row"><strong>$f_{RSV}$ (con $b_{10}$)</strong><span><strong style="color:var(--red-500)">2 (critico, &gt; 88 lpm)</strong></span></div>
+        <div class="case-row"><strong>$f_{RES}$</strong><span>3 (C3) por $r = 2$</span></div>
+      </div>
+    </div>
+    <div class="compare reveal" style="margin-top: 24px; transition-delay:0.2s">
+      <div class="compare-card">
+        <div class="label">Triage Tradicional</div>
+        <h4>C3 &middot; Mediano Riesgo</h4>
+        <p style="color:var(--slate-500); font-size: 0.85rem; margin-bottom: 8px;">108 lpm parece taquicardia leve y estable. Se cataloga como mediano riesgo por ausencia de signos de alarma criticos a primera vista.</p>
+        <div class="time" style="color: #ca8a04;">Espera: $\leq 90$ minutos</div>
+      </div>
+      <div class="compare-card optimized">
+        <div class="label">Modelo Lógico Optimizado</div>
+        <h4 style="color:var(--red-500);">C2 &middot; Urgencia Alta</h4>
+        <p style="color:var(--slate-500); font-size: 0.85rem; margin-bottom: 8px;">Detecta fragilidad ($b_{10}=1$), recalcula umbral: $110 \times 0.8 = 88$ lpm. Como $108 > 88$, se activa Riesgo 2 inmediato y la cascada eleva la prioridad.</p>
+        <div class="time" style="color: var(--amber-500);">Espera: $\leq 30$ minutos</div>
+      </div>
+    </div>
+    <div class="callout reveal" style="margin-top: 18px; transition-delay:0.3s">
+      <strong>Conclusión del caso:</strong> el modelo identifica que una frecuencia cardíaca de 108 lpm es crítica para una paciente de 70 años con fragilidad. Mientras un triage estándar asignaría C3, el modelo matemático eleva la prioridad a <strong>C2</strong>, garantizando atención en menos de 30 minutos.
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 18: CIERRE ===== -->
+<section class="slide slide-cierre" id="slide-20">
+  <div class="slide-num">Diapositiva <strong>20</strong> / 20</div>
+  <div class="slide-inner">
+    <div class="portada-isotipo reveal" style="margin-bottom: 16px;">
+      <svg viewBox="0 0 80 80" fill="none" width="64" height="64">
+        <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <path d="M10 40h12l4-14 8 28 6-18 4 10h8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="40" cy="40" r="3" fill="#3b82f6"/>
+      </svg>
+    </div>
+    <h2 class="reveal" style="transition-delay:0.05s">Conclusiones y Proyecciones</h2>
+    <p class="reveal" style="transition-delay:0.1s; color: rgba(255,255,255,0.7); max-width: 60ch; margin: 0 auto 24px;">
+      De la teoría de conjuntos a los autómatas finitos, este proyecto demuestra que las herramientas de la informática y las matemáticas formales no pertenecen únicamente a un plano teórico. Tienen el poder de estructurar, optimizar y proteger procesos donde la vida humana está en juego.
+    </p>
+    <div class="reveal" style="transition-delay:0.2s; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 0 auto 32px; max-width: 720px;">
+      <span class="prop-badge true" style="background: rgba(16,185,129,0.15); color: #34d399;">Producto Cartesiano U</span>
+      <span class="prop-badge true" style="background: rgba(16,185,129,0.15); color: #34d399;">Restricciones Rper, Rfrag</span>
+      <span class="prop-badge true" style="background: rgba(16,185,129,0.15); color: #34d399;">Función T sobreyectiva</span>
+      <span class="prop-badge true" style="background: rgba(16,185,129,0.15); color: #34d399;">Lenguajes L<sub>T</sub>, L<sub>RSV</sub>, ...</span>
+      <span class="prop-badge true" style="background: rgba(16,185,129,0.15); color: #34d399;">Automatas M<sub>T</sub>, M<sub>per</sub>, ...</span>
+    </div>
+    <a href="#tool" class="cierre-cta reveal" style="transition-delay:0.3s">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      Probar la herramienta interactiva
+    </a>
+    <p class="reveal" style="transition-delay:0.4s; margin-top: 40px; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4);">Universidad Católica del Norte &middot; &iquest;Preguntas?</p>
+  </div>
+</section>
+
+<!-- ===== HERRAMIENTA INTERACTIVA (INTACTA) ===== -->
+<section class="tool-section" id="tool">
+  <div class="tool-scroll-inner">
+  <div class="tool-header">
+    <span class="eyebrow reveal">Herramienta interactiva</span>
+    <h2 class="reveal" style="transition-delay:0.05s">Evaluar paciente en tiempo real</h2>
+    <p class="reveal" style="transition-delay:0.1s">Ingrese los datos clínicos del paciente y observe como el motor lógico ejecuta el automata para clasificar la prioridad.</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="card-shell">
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="card-head-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
+            <h2>Datos del Paciente</h2>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="form-group"><label>Género</label><select id="genero"><option value="0">Femenino</option><option value="1">Masculino</option></select></div>
+              <div class="form-group"><label>Edad</label><select id="edad"><option value="1">Neonato [0-1 mes)</option><option value="2">Lactante [1-12 meses]</option><option value="3">Preescolar (1-5]</option><option value="4">Escolar (5-12]</option><option value="5">Adolescente (12-18)</option><option value="6" selected>Adulto [18-65)</option><option value="7">Adulto Mayor (>=65)</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Frec. Cardíaca (lpm)</label><input type="number" id="fc" value="80" min="0" max="300"></div>
+              <div class="form-group"><label>Frec. Respiratoria (rpm)</label><input type="number" id="fr" value="16" min="0" max="100"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Saturación O2 (%)</label><input type="number" id="spo2" value="97" min="0" max="100"></div>
+              <div class="form-group"><label>TAS (mmHg)</label><input type="number" id="tas" value="120" min="0" max="250"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Temperatura (C)</label><input type="number" id="t" value="36.5" min="30" max="45" step="0.1"></div>
+              <div class="form-group"><label>Estado Neurológico (EN)</label><select id="en"><option value="1">1 - Alerta</option><option value="2">2 - Responde a la voz</option><option value="3">3 - Solo al dolor</option><option value="4">4 - Inconsciente</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Dolor (1-10)</label><input type="number" id="dolor" value="4" min="1" max="10"></div>
+              <div class="form-group"><label>Motivo de Consulta</label><select id="mc"><option value="1">1 - Riesgo Vital</option><option value="2">2 - Cardio/Neuro</option><option value="3">3 - Trauma Grave</option><option value="4">4 - Hemorragias</option><option value="5">5 - Infecciosos</option><option value="6">6 - Trauma Menor</option><option value="7" selected>7 - General</option><option value="8">8 - Administrativo</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Recursos</label><select id="recursos"><option value="0">0 - Ninguno</option><option value="1">1 - Un recurso</option><option value="2">2 - Dos o más</option></select></div>
+              <div class="form-group" id="perinatalGroup"><label>Perfil Perinatal</label><div class="perinatal-wrap"><label><input type="checkbox" id="o1"> Gestacion >=35 sem</label><label><input type="checkbox" id="o2"> Contracciones</label><label><input type="checkbox" id="o3"> Sangrado</label></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-shell">
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="card-head-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></div>
+            <h2>Antecedentes Médicos (AM)</h2>
+          </div>
+          <div class="ant-grid" id="antecedentesGrid">
+            <label class="ant-item"><input type="checkbox" data-bit="0"> Diabetes Mellitus</label>
+            <label class="ant-item"><input type="checkbox" data-bit="1"> Hipertension Arterial</label>
+            <label class="ant-item"><input type="checkbox" data-bit="2"> Inmunosupresion</label>
+            <label class="ant-item"><input type="checkbox" data-bit="3"> Enf. Renal Crónica</label>
+            <label class="ant-item"><input type="checkbox" data-bit="4"> Insuficiencia Cardíaca</label>
+            <label class="ant-item"><input type="checkbox" data-bit="5"> Enf. Pulmonar (EPOC/Asma)</label>
+            <label class="ant-item"><input type="checkbox" data-bit="6"> Antecedente de ACV</label>
+            <label class="ant-item"><input type="checkbox" data-bit="7"> Trastorno de Coagulacion</label>
+            <label class="ant-item"><input type="checkbox" data-bit="8"> Riesgo Psiquiatrico (b9)</label>
+            <label class="ant-item"><input type="checkbox" data-bit="9"> Fragilidad/Dependencia (b10)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-shell">
+        <div class="card-inner">
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="evaluar()">
+              <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              Evaluar Paciente
+            </button>
+            <button class="btn btn-secondary" onclick="cargarEjemplo()">
+              <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8Z"/></svg>
+              Cargar Ejemplo
+            </button>
+            <button class="btn btn-secondary" onclick="resetForm()">
+              <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="resultPanel" class="result-panel">
+        <div class="card-shell">
+          <div class="card-inner">
+            <div class="card-head">
+              <div class="card-head-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+              <h2>Resultado del Triage</h2>
+            </div>
+            <div id="priorityResult" class="priority-result">
+              <div class="label">Prioridad Asignada</div>
+              <div class="value" id="prioridadValue">-</div>
+              <div class="desc" id="prioridadDesc">-</div>
+              <div class="time" id="prioridadTime">-</div>
+            </div>
+            <div class="proceso-section"><div id="procesoList"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('automata',this)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Automatas
+        </button>
+        <button class="tab" onclick="switchTab('logica',this)">
+          <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/></svg>
+          Lógica
+        </button>
+        <button class="tab" onclick="switchTab('flujo',this)">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+          Flujo
+        </button>
+      </div>
+
+      <div id="tab-automata" class="tab-content active">
+        <div class="automata-grid">
+          <div class="card-shell"><div class="card-inner automata-box">
+            <h3>M<sub>per</sub> - Perfil Perinatal <span class="sub">(S<sub>2</sub>={0,1})</span></h3>
+            <div class="automata-row"><span class="automata-label">Entrada O:</span><span id="perinatalBits" style="font-family:monospace;font-weight:700;font-size:0.85rem;color:var(--slate-700);">_ _ _</span></div>
+            <div class="automata-row">
+              <span class="automata-label">Estados:</span>
+              <div class="state final" id="mper-q0">q0</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mper-q1">q1</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mper-q2">q2</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="mper-q3">q3</div><span class="arrow">&rarr;</span>
+              <div class="state reject" id="mper-q4">q4</div>
+            </div>
+            <div id="mperResult" class="result-text">Esperando evaluación...</div>
+          </div></div>
+
+          <div class="card-shell"><div class="card-inner automata-box">
+            <h3>M<sub>CM</sub> - Carga de Morbilidad <span class="sub">(b1...b8)</span></h3>
+            <div class="automata-row"><span class="automata-label">Bits AM:</span><span id="cmBits" style="font-family:monospace;font-weight:700;font-size:0.82rem;color:var(--slate-700);">________</span></div>
+            <div class="automata-row" style="margin-top:4px;">
+              <span class="automata-label">MCM-1:</span>
+              <div class="state final" id="mcm1-q0">q0</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q1">q1</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q2">q2</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q3">q3</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q4">q4</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q5">q5</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm1-q6">q6</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="mcm1-q7">q7</div><span class="arrow">&rarr;</span>
+              <div class="state reject" id="mcm1-q8">q8</div>
+            </div>
+            <div class="automata-row">
+              <span class="automata-label">MCM-2:</span>
+              <div class="state" id="mcm2-q0">q0</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm2-q1">q1</div><span class="arrow">&rarr;</span>
+              <div class="state" id="mcm2-q2">q2</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="mcm2-q3">q3</div>
+            </div>
+            <div id="cmResult" class="result-text">Esperando evaluación...</div>
+          </div></div>
+
+          <div class="card-shell"><div class="card-inner automata-box">
+            <h3>M<sub>sv-2</sub> - Riesgo Signos Vitales (fRSV)</h3>
+            <div class="automata-row"><span class="automata-label">Riesgos:</span><span id="rsvRiesgos" style="font-family:monospace;font-weight:600;font-size:0.78rem;color:var(--slate-600);">fc:_ tas:_ spo2:_ t:_</span></div>
+            <div class="automata-row">
+              <span class="automata-label">Estados:</span>
+              <div class="state" id="msv2-q0">q0</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="msv2-qn">qn</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="msv2-qm">qm</div><span class="arrow">&rarr;</span>
+              <div class="state final" id="msv2-qc">qc</div><span class="arrow">&rarr;</span>
+              <div class="state reject" id="msv2-qerr">qerr</div>
+            </div>
+            <div id="msv2Result" class="result-text">Esperando evaluación...</div>
+          </div></div>
+
+          <div class="card-shell"><div class="card-inner automata-box">
+            <h3>f<sub>RES</sub> - Mapeo de Recursos</h3>
+            <div class="automata-row"><span class="automata-label">Recursos r:</span><span id="resValor" style="font-family:monospace;font-weight:700;font-size:0.88rem;color:var(--slate-700);">_</span></div>
+            <div class="automata-row">
+              <span class="automata-label">Salida:</span>
+              <span id="resSalida" class="result-text" style="display:inline-block;padding:4px 12px;margin-top:0;">Esperando...</span>
+            </div>
+            <div style="font-size:0.74rem;color:var(--slate-400);margin-top:4px;">r=2 &rarr; C3 &nbsp;|&nbsp; r=1 &rarr; C4 &nbsp;|&nbsp; r=0 &rarr; C5</div>
+          </div></div>
+        </div>
+      </div>
+
+      <div id="tab-logica" class="tab-content">
+        <div class="card-shell"><div class="card-inner">
+          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/></svg></div><h2>Funciones Intermedias</h2></div>
+          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>CM</sub>: Carga de Morbilidad</div><div class="detail" id="logCM">Esperando datos...</div></div></div>
+          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>RSV</sub>: Riesgo Signos Vitales</div><div class="detail" id="logRSV">Esperando datos...</div></div></div>
+          <div class="proceso-item"><div class="icon">f</div><div class="content"><div class="title">f<sub>RES</sub>: Mapeo de Recursos</div><div class="detail" id="logRES">Esperando datos...</div></div></div>
+          <div class="proceso-item"><div class="icon">?</div><div class="content"><div class="title">f<sub>CM</sub> &ge; 3</div><div class="detail" id="logCM3">Esperando datos...</div></div></div>
+          <div class="proceso-item"><div class="icon">?</div><div class="content"><div class="title">f<sub>RSV</sub> = 2</div><div class="detail" id="logRSV2">Esperando datos...</div></div></div>
+        </div></div>
+        <div class="card-shell"><div class="card-inner">
+          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><h2>Proposiciones Logicas</h2></div>
+          <div class="proceso-item"><div class="content"><div class="title">C1</div><div class="detail" id="propC1">Esperando...</div></div></div>
+          <div class="proceso-item"><div class="content"><div class="title">C2</div><div class="detail" id="propC2">Esperando...</div></div></div>
+          <div class="proceso-item"><div class="content"><div class="title">C3</div><div class="detail" id="propC3">Esperando...</div></div></div>
+          <div class="proceso-item"><div class="content"><div class="title">C4</div><div class="detail" id="propC4">Esperando...</div></div></div>
+          <div class="proceso-item"><div class="content"><div class="title">C5</div><div class="detail" id="propC5">Esperando...</div></div></div>
+        </div></div>
+      </div>
+
+      <div id="tab-flujo" class="tab-content">
+        <div class="card-shell"><div class="card-inner">
+          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div><h2>Flujo de Decisión en Cascada</h2></div>
+          <div class="flow-diagram" id="flowDiagram">
+            <div class="flow-step" id="flow-c1">C1<small>Riesgo Vital</small></div><span class="flow-arrow">&rarr;</span>
+            <div class="flow-step" id="flow-c2">C2<small>Urgencia</small></div><span class="flow-arrow">&rarr;</span>
+            <div class="flow-step" id="flow-c3">C3<small>Mediano Riesgo</small></div><span class="flow-arrow">&rarr;</span>
+            <div class="flow-step" id="flow-c4">C4<small>Baja Complejidad</small></div><span class="flow-arrow">&rarr;</span>
+            <div class="flow-step" id="flow-c5">C5<small>No Urgente</small></div>
+          </div>
+          <div id="flowExplicacion" style="font-size:0.84rem;color:var(--slate-500);margin-top:8px;padding:14px;background:var(--slate-50);border-radius:var(--radius-sm);">Evalue un paciente para ver el flujo.</div>
+        </div></div>
+        <div class="card-shell"><div class="card-inner">
+          <div class="card-head"><div class="card-head-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h2>Conjuntos del Sistema</h2></div>
+          <div class="conjuntos-list">
+            <p><span class="tag tag-a">A</span> Perfil Demografico (Género x Edad x Antecedentes)</p>
+            <p><span class="tag tag-s">S</span> Estado Clínico (SV x EN x Dolor x MC)</p>
+            <p><span class="tag tag-r">R</span> Recursos Asistenciales {0, 1, 2}</p>
+            <p><span class="tag tag-o">O</span> Perfil Perinatal (o1, o2, o3)</p>
+            <p><span class="tag tag-p">P</span> Prioridad de Salida {C1, C2, C3, C4, C5}</p>
+            <p style="margin-top:10px;"><strong>Universo:</strong> U = A x S x R x O</p>
+            <p><strong>Función Triage:</strong> T : U &rarr; P</p>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<script>
+// ===== REVEAL OBSERVER =====
+(function() {
+  document.body.classList.remove('no-js');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, {threshold: 0.05, rootMargin: '0px 0px -20px 0px'});
+
+  function setupReveals() {
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  }
+
+  setTimeout(() => {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  }, 1500);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupReveals);
+  } else {
+    setupReveals();
+  }
+})();
+
+// ===== PRESENTATION MODE =====
+const presentBtn = document.getElementById('presentBtn');
+const allDots = document.querySelectorAll('.side-dot');
+const allSlides = document.querySelectorAll('.slide');
+const topNav = document.getElementById('topNav');
+
+// Order of sections used by the keyboard / arrow navigation. Index 0..19 are
+// slides, index 20 is the interactive tool. Note the slide-15b split: index 14
+// -> slide-15, index 15 -> slide-15b, index 16 -> slide-17, etc.
+const SLIDE_IDS = [
+  'slide-1','slide-2','slide-3','slide-4','slide-5','slide-6','slide-7','slide-8',
+  'slide-9','slide-10','slide-11','slide-12','slide-13','slide-14','slide-15',
+  'slide-15b','slide-17','slide-18','slide-19','slide-20','tool'
+];
+const TOTAL_SLIDES = SLIDE_IDS.length;
+
+let presentIndex = 0;
+
+function goToSlide(i) {
+  if (i < 0) i = 0;
+  if (i > TOTAL_SLIDES - 1) i = TOTAL_SLIDES - 1;
+  presentIndex = i;
+  const target = document.getElementById(SLIDE_IDS[i]);
+  if (target) target.scrollIntoView({behavior: 'smooth'});
+}
+
+function nextSlide() { goToSlide(presentIndex + 1); }
+function prevSlide() { goToSlide(presentIndex - 1); }
+
+// Detect which slide the user is currently looking at. The rule is "the
+// slide that takes up the most space in the viewport" - this matches the
+// visual impression (the slide the user is "on"), not just whichever
+// section the scroll happens to currently contain the center of the
+// viewport. Includes the tool so it can be the active slide too.
+function currentSlideIndex() {
+  // Force the scroll listener to update the side-dot active state first so
+  // it stays in sync with the index we are about to return.
+  if (typeof updateActiveDot === 'function') updateActiveDot();
+
+  const sections = document.querySelectorAll('section.slide, section.tool-section');
+  if (!sections.length) return 0;
+
+  const viewTop = window.scrollY;
+  const viewBottom = viewTop + window.innerHeight;
+
+  // Walk every section and compute how many pixels of it are visible in the
+  // viewport. The section with the largest visible portion wins. Ties go to
+  // the section that appears first in the document.
+  let bestIdx = 0;
+  let bestVisible = -1;
+  sections.forEach((s, i) => {
+    const top = s.offsetTop;
+    const bottom = top + s.offsetHeight;
+    const visible = Math.max(0, Math.min(bottom, viewBottom) - Math.max(top, viewTop));
+    if (visible > bestVisible) {
+      bestVisible = visible;
+      bestIdx = i;
+    }
+  });
+  return bestIdx;
+}
+
+// Extracted from the scroll listener so we can call it on demand from
+// currentSlideIndex() without relying on the next scroll tick.
+// The active section is the one whose top edge is closest to (and at or above)
+// the viewport top + a small threshold. We include the tool section so it
+// can be the active target too.
+function updateActiveDot() {
+  const sections = document.querySelectorAll('section.slide, section.tool-section');
+  const threshold = window.innerHeight * 0.35;  // dot activates when section's
+                                                // top crosses 35% from viewport top
+  let currentId = sections[0]?.id || '';
+  for (const s of sections) {
+    if (window.scrollY >= s.offsetTop - threshold) {
+      currentId = s.id;
+    } else {
+      break;  // sections are in DOM order, no need to keep scanning
+    }
+  }
+  allDots.forEach(d => d.classList.toggle('active', d.dataset.target === currentId));
+}
+
+function setPresentButton(isPresenting) {
+  if (!presentBtn) return;
+  presentBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg> ' + (isPresenting ? 'Salir' : 'Presentar');
+}
+
+function enterPresent() {
+  // Pick the slide the user is currently looking at. We snap to it BEFORE
+  // requesting fullscreen so the scroll position is correct on the
+  // non-fullscreen viewport, then re-snap AFTER the fullscreen transition
+  // completes (the fullscreenchange event fires when the layout has settled
+  // and the viewport size is final). Without this re-snap the browser can
+  // leave the scroll position stranded between two slides.
+  presentIndex = currentSlideIndex();
+  // Use instant scroll (default behavior) so the page jumps immediately
+  // to the chosen slide. Smooth scrolling would leave the page in motion
+  // when fullscreen is requested, which can leave the scroll mid-flight.
+  const target = document.getElementById(SLIDE_IDS[presentIndex]);
+  if (target) window.scrollTo(0, target.offsetTop);
+  document.body.classList.add('presenting');
+  setPresentButton(true);
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}
+
+// Whenever the viewport changes size (entering or leaving fullscreen, or
+// any other resize) re-snap the current slide to the top of the viewport.
+// This is what guarantees the presenter always sees a clean, fully-aligned
+// slide after the fullscreen transition completes.
+function resnapCurrentSlide() {
+  if (!document.body.classList.contains('presenting')) return;
+  presentIndex = currentSlideIndex();
+  const target = document.getElementById(SLIDE_IDS[presentIndex]);
+  if (!target) return;
+  const top = target.offsetTop;
+  // Instant scroll - no animation visible to the user.
+  window.scrollTo(0, top);
+}
+window.addEventListener('resize', resnapCurrentSlide);
+// fullscreenchange fires after the browser has finished switching into or
+// out of fullscreen and the viewport size is final. Re-snap so the active
+// slide is fully aligned with the new viewport.
+document.addEventListener('fullscreenchange', resnapCurrentSlide);
+
+function exitPresent() {
+  document.body.classList.remove('presenting');
+  setPresentButton(false);
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+function togglePresent() {
+  if (document.body.classList.contains('presenting')) {
+    exitPresent();
+  } else {
+    enterPresent();
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!document.body.classList.contains('presenting')) return;
+  switch(e.key) {
+    case 'ArrowRight':
+    case ' ':
+    case 'PageDown':
+      e.preventDefault();
+      nextSlide();
+      break;
+    case 'ArrowLeft':
+    case 'PageUp':
+      e.preventDefault();
+      prevSlide();
+      break;
+    case 'Home':
+      e.preventDefault();
+      goToSlide(0);
+      break;
+    case 'End':
+      e.preventDefault();
+      goToSlide(19);
+      break;
+    case 'Escape':
+      e.preventDefault();
+      exitPresent();
+      break;
+  }
+});
+
+const slideObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && document.body.classList.contains('presenting')) {
+      const id = e.target.id;
+      const idx = SLIDE_IDS.indexOf(id);
+      if (idx !== -1) presentIndex = idx;
+    }
+  });
+}, {threshold: 0.5});
+allSlides.forEach(s => slideObserver.observe(s));
+document.getElementById('tool') && slideObserver.observe(document.getElementById('tool'));
+
+// Older fullscreenchange handler kept for compatibility - the resnap is
+// handled by the handler declared above next to resnapCurrentSlide().
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && document.body.classList.contains('presenting')) {
+    document.body.classList.remove('presenting');
+    setPresentButton(false);
+  }
+});
+
+document.querySelector('.cierre-cta')?.addEventListener('click', (e) => {
+  if (document.body.classList.contains('presenting')) {
+    e.preventDefault();
+    goToSlide(20);
+  }
+});
+
+(function() {
+  const toolSection = document.querySelector('.tool-section');
+  const toolInner = toolSection?.querySelector('.tool-scroll-inner');
+  if (!toolSection || !toolInner) return;
+
+  toolSection.addEventListener('wheel', (e) => {
+    if (!document.body.classList.contains('presenting')) return;
+    e.preventDefault();
+    const delta = e.deltaY;
+    toolInner.scrollTop += delta;
+  }, {passive: false});
+
+  toolSection.addEventListener('keydown', (e) => {
+    if (!document.body.classList.contains('presenting')) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'PageDown' || e.key === 'PageUp') {
+      e.preventDefault();
+      const step = e.key === 'PageDown' || e.key === 'PageUp' ? 400 : 40;
+      toolInner.scrollTop += (e.key === 'ArrowDown' || e.key === 'PageDown' ? step : -step);
+    }
+  });
+
+  toolSection.setAttribute('tabindex', '-1');
+})();
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) topNav.classList.add('scrolled'); else topNav.classList.remove('scrolled');
+  updateActiveDot();
+});
+allDots.forEach(d => d.addEventListener('click', () => {
+  document.getElementById(d.dataset.target)?.scrollIntoView({behavior:'smooth'});
+}));
+
+function getAMBits() { return Array.from(document.querySelectorAll('#antecedentesGrid input')).map(cb => cb.checked ? 1 : 0); }
+function getAMBinaryFull() { return getAMBits().join(''); }
+function fCM() { return getAMBits().slice(0,8).reduce((a,b) => a+b, 0); }
+function getEdad() { return parseInt(document.getElementById('edad').value); }
+function getFC() { return parseFloat(document.getElementById('fc').value) || 0; }
+function getFR() { return parseFloat(document.getElementById('fr').value) || 0; }
+function getSPO2() { return parseFloat(document.getElementById('spo2').value) || 0; }
+function getTAS() { return parseFloat(document.getElementById('tas').value) || 0; }
+function getT() { return parseFloat(document.getElementById('t').value) || 0; }
+function getEN() { return parseInt(document.getElementById('en').value); }
+function getDolor() { return parseInt(document.getElementById('dolor').value) || 1; }
+function getMC() { return parseInt(document.getElementById('mc').value); }
+function getRecursos() { return parseInt(document.getElementById('recursos').value); }
+function getGenero() { return parseInt(document.getElementById('genero').value); }
+function getO() { return [document.getElementById('o1').checked ? 1 : 0, document.getElementById('o2').checked ? 1 : 0, document.getElementById('o3').checked ? 1 : 0]; }
+
+function riesgoFC() {
+  const e=getEdad(), fc=getFC(), b10=getAMBits()[9];
+  const t={1:{n:[100,160],m:[161,180],ci:90,cs:180},2:{n:[90,150],m:[151,170],ci:80,cs:170},3:{n:[80,120],m:[121,140],ci:70,cs:140},4:{n:[75,115],m:[116,130],ci:65,cs:130},5:{n:[60,100],m:[101,120],ci:55,cs:120},6:{n:[60,100],m:[101,120],ci:50,cs:120},7:{n:[60,90],m:[91,110],ci:50,cs:110}}[e]||t[6];
+  let cs=t.cs; if(b10) cs=Math.round(cs*0.8);
+  if (fc>=t.n[0]&&fc<=t.n[1]) return 0;
+  if (fc>=t.m[0]&&fc<=t.m[1]) return 1;
+  if (fc<t.ci||fc>cs) return 2;
+  return 1;
+}
+function riesgotas() {
+  const e=getEdad(), tas=getTAS();
+  const t={1:{n:[60,90],m:[91,100],ci:60,cs:100},2:{n:[70,100],m:[101,110],ci:70,cs:110},3:{n:[80,110],m:[111,120],ci:75,cs:120},4:{n:[85,120],m:[121,130],ci:80,cs:130},5:{n:[90,130],m:[131,140],ci:90,cs:140},6:{n:[90,140],m:[141,200],ci:90,cs:200},7:{n:[100,150],m:[151,190],ci:100,cs:190}}[e]||t[6];
+  if (tas>=t.n[0]&&tas<=t.n[1]) return 0;
+  if (tas>=t.m[0]&&tas<=t.m[1]) return 1;
+  if (tas<t.ci||tas>t.cs) return 2;
+  return 1;
+}
+function riesgoSPO2() { const s=getSPO2(); if(s>=95) return 0; if(s>=92&&s<=94) return 1; return 2; }
+function riesgot() { const t=getT(); if(t>=36.0&&t<=37.5) return 0; if(t>37.5&&t<=39.0) return 1; if(t>39.0||t<35.0) return 2; return 1; }
+function fRSV() { return Math.max(riesgoFC(), riesgotas(), riesgoSPO2(), riesgot()); }
+function fRES() { const r=getRecursos(); if(r===2) return 3; if(r===1) return 4; return 5; }
+
+function evaluarMper() {
+  const o=getO();
+  document.getElementById('perinatalBits').textContent=o.join(' ');
+  const res=document.getElementById('mperResult');
+  let estado='q0';
+  for (let i=0;i<3;i++) {
+    if (estado==='q4') break;
+    if (o[i]===0) { if(estado==='q0') estado='q1'; else if(estado==='q1') estado='q2'; else if(estado==='q2') estado='q3'; else if(estado==='q3') estado='q4'; }
+    else estado='q4';
+  }
+  ['q0','q1','q2','q3','q4'].forEach(q => { const e=document.getElementById('mper-'+q); e.classList.remove('active'); if(q===estado) e.classList.add('active'); });
+  const acep=o[0]===0&&o[1]===0&&o[2]===0;
+  if(acep){res.textContent='Aceptado: O = (0,0,0)';res.className='result-text accepted';}
+  else{res.textContent='Rechazado: O contiene algun 1';res.className='result-text rejected';}
+}
+function evaluarMCM() {
+  const bits=getAMBits().slice(0,8); const str=bits.join('');
+  document.getElementById('cmBits').textContent=str;
+  const res=document.getElementById('cmResult');
+  const cm1=str.length>=8?'q7':'q8';
+  ['q0','q1','q2','q3','q4','q5','q6','q7','q8'].forEach(q => { const e=document.getElementById('mcm1-'+q); if(e) e.classList.remove('active'); });
+  const e1=document.getElementById('mcm1-'+cm1); if(e1) e1.classList.add('active');
+  const unos=bits.filter(b=>b===1).length;
+  let cm2='q0'; if(unos>=3)cm2='q3'; else if(unos===2)cm2='q2'; else if(unos===1)cm2='q1';
+  ['q0','q1','q2','q3'].forEach(q => { const e=document.getElementById('mcm2-'+q); if(e) e.classList.remove('active'); });
+  const e2=document.getElementById('mcm2-'+cm2); if(e2) e2.classList.add('active');
+  const fcm=fCM();
+  if(fcm>=3){res.textContent='fCM = '+fcm+' (>=3) - Alta morbilidad';res.className='result-text accepted';}
+  else{res.textContent='fCM = '+fcm+' (<3) - Baja morbilidad';res.className='result-text';}
+}
+function evaluarMsv2() {
+  const r=[riesgoFC(),riesgotas(),riesgoSPO2(),riesgot()]; const m=fRSV();
+  document.getElementById('rsvRiesgos').textContent='fc:'+r[0]+' tas:'+r[1]+' spo2:'+r[2]+' t:'+r[3];
+  const res=document.getElementById('msv2Result');
+  let e='q0';
+  for (const v of r) { if(v===2) e='qc'; else if(v===1) { if(e==='q0'||e==='qn') e='qm'; } else if(v===0&&e==='q0') e='qn'; }
+  ['q0','qn','qm','qc','qerr'].forEach(q => { const el=document.getElementById('msv2-'+q); if(el) el.classList.remove('active'); });
+  const em={0:'qn',1:'qm',2:'qc'}; const ei=em[m]||'q0';
+  const el=document.getElementById('msv2-'+ei); if(el) el.classList.add('active');
+  const lb={0:'Normal',1:'Moderado',2:'Critico'};
+  res.textContent='fRSV = '+m+' -> '+lb[m]; res.className='result-text '+(m===2?'rejected':m===1?'':'accepted');
+}
+function evaluarFRES() {
+  const r=getRecursos(); const s=fRES();
+  document.getElementById('resValor').textContent=r;
+  const el=document.getElementById('resSalida');
+  el.textContent='fRES('+r+') = C'+s;
+  el.className='result-text'+(s===3?' rejected':'');
+}
+
+function evaluar() {
+  evaluarMper(); evaluarMCM(); evaluarMsv2(); evaluarFRES();
+  const en=getEN(),mc=getMC(),fc=getFC(),fr=getFR(),fRsv=fRSV(),d=getDolor(),b9=getAMBits()[8],o=getO(),fCm=fCM(),fRes=fRES(),r=getRecursos(),g=getGenero();
+  const isC1=(en>=3)||(mc===1)||(fc===0)||(fr===0);
+  const isC2=!isC1&&(fRsv===2||d>=7||(mc>=2&&mc<=4)||b9===1||(o[0]!==0||o[1]!==0||o[2]!==0));
+  const isC3=!isC1&&!isC2&&(fRsv===1||fCm>=3||mc===5||fRes===3);
+  const isC4=!isC1&&!isC2&&!isC3&&(mc>=6&&mc<=7)&&fRes===4;
+  const isC5=!isC1&&!isC2&&!isC3&&!isC4;
+  let p,nm,ds,cl,tm;
+  if(isC1){p='C1';nm='Riesgo Vital';ds='Atencion inmediata.';tm='Inmediato';cl='c1';}
+  else if(isC2){p='C2';nm='Urgencia Alta';ds='Condición grave pero estable.';tm='< 30 min';cl='c2';}
+  else if(isC3){p='C3';nm='Mediano Riesgo';ds='Requiere atencion sin riesgo vital.';tm='< 90 min';cl='c3';}
+  else if(isC4){p='C4';nm='Baja Complejidad';ds='Paciente estable.';tm='< 180 min';cl='c4';}
+  else{p='C5';nm='No Urgente';ds='Derivado a SAPU/Consultorio.';tm='Sin urgencia';cl='c5';}
+  document.getElementById('resultPanel').classList.add('visible');
+  const pr=document.getElementById('priorityResult');
+  pr.className='priority-result '+cl;
+  document.getElementById('prioridadValue').textContent=p+' - '+nm;
+  document.getElementById('prioridadDesc').textContent=ds;
+  document.getElementById('prioridadTime').textContent=tm;
+  const pl=document.getElementById('procesoList'); pl.innerHTML='';
+  function addP(t,d,ok){const div=document.createElement('div');div.className='proceso-item'+(ok!==null?(ok?' checked':' failing'):'');div.innerHTML='<div class="icon">'+(ok===true?'OK':ok===false?'NO':'-')+'</div><div class="content"><div class="title">'+t+'</div><div class="detail">'+d+'</div></div>';pl.appendChild(div);}
+  const mcD={1:'Riesgo Vital',2:'Cardio/Neuro',3:'Trauma Grave',4:'Hemorragias',5:'Infecciosos',6:'Trauma Menor',7:'General',8:'Administrativo'};
+  addP('Perfil: G='+(g===0?'F':'M')+', E='+getEdad()+', AM='+getAMBinaryFull(),'Conjunto A',null);
+  addP('Signos: fc='+fc+', fr='+fr+', spo2='+getSPO2()+'%, tas='+getTAS()+', t='+getT()+'C','Conjunto S',null);
+  addP('EN='+en+', D='+d+', MC='+mc+' ('+mcD[mc]+')',null,null);
+  addP('Recursos r='+r+', O=('+o.join(',')+')',null,null);
+  addP('f<sub>CM</sub> = '+fCm+(fCm>=3?' (>=3)':' (<3)'),null,null);
+  const rL={0:'Normal',1:'Moderado',2:'Critico'};
+  addP('f<sub>RSV</sub> = max(fc='+riesgoFC()+', tas='+riesgotas()+', spo2='+riesgoSPO2()+', t='+riesgot()+') = '+fRsv+' ('+rL[fRsv]+')',null,null);
+  addP('f<sub>RES</sub>('+r+') = C'+fRes,null,null);
+  const c1P=[];if(en>=3)c1P.push('EN='+en);if(mc===1)c1P.push('MC=1');if(fc===0)c1P.push('fc=0');if(fr===0)c1P.push('fr=0');
+  addP('C1: '+(isC1?'ACTIVADO':'no cumple'),c1P.length?'Se cumple: '+c1P.join(', '):'Ninguna',isC1?true:(isC2||isC3||isC4||isC5?false:null));
+  if(!isC1){const c2P=[];if(fRsv===2)c2P.push('fRSV=2');if(d>=7)c2P.push('D='+d);if(mc>=2&&mc<=4)c2P.push('MC='+mc);if(b9===1)c2P.push('b9=1');if(o[0]!==0||o[1]!==0||o[2]!==0)c2P.push('O');addP('C2: '+(isC2?'ACTIVADO':'no cumple'),c2P.length?'Se cumple: '+c2P.join(', '):'Ninguna',isC2?true:(isC3||isC4||isC5?false:null));}
+  if(!isC1&&!isC2){const c3P=[];if(fRsv===1)c3P.push('fRSV=1');if(fCm>=3)c3P.push('fCM='+fCm);if(mc===5)c3P.push('MC=5');if(fRes===3)c3P.push('fRES=3');addP('C3: '+(isC3?'ACTIVADO':'no cumple'),c3P.length?'Se cumple: '+c3P.join(', '):'Ninguna',isC3?true:(isC4||isC5?false:null));}
+  if(!isC1&&!isC2&&!isC3){const c4P=[];if(mc>=6&&mc<=7)c4P.push('MC='+mc);if(fRes===4)c4P.push('fRES=4');addP('C4: '+(isC4?'ACTIVADO':'no cumple'),c4P.length===2?'AMBAS condiciones':'Solo: '+c4P.join(', '),isC4?true:(isC5?false:null));}
+  if(!isC1&&!isC2&&!isC3&&!isC4){addP('C5: Asignado por descarte','Ninguna condicion',true);}
+  document.getElementById('logCM').innerHTML='fCM = '+fCm+(fCm>=3?' <span style="background:var(--amber-50);padding:1px 6px;border-radius:4px;font-weight:600;">(>=3 - Alta)</span>':' (<3 - Baja)');
+  document.getElementById('logRSV').innerHTML='fRSV = '+fRsv+' ('+rL[fRsv]+')';
+  document.getElementById('logRES').innerHTML='fRES('+r+') = C'+fRes;
+  document.getElementById('logCM3').innerHTML=fCm+' >= 3 -> '+(fCm>=3?'Verdadero':'Falso');
+  document.getElementById('logRSV2').innerHTML='fRSV = '+fRsv+' -> '+(fRsv===2?'fRSV=2 (Critico)':'fRSV!=2');
+  document.getElementById('propC1').innerHTML='C1: (EN&ge;3) &or; (MC=1) &or; (fc=0) &or; (fr=0) -> <strong>'+(isC1?'ACTIVADO':'falso')+'</strong>';
+  document.getElementById('propC2').innerHTML='C2: not C1 &and; [fRSV=2 &or; D&ge;7 &or; 2&le;MC&le;4 &or; b9=1 &or; O&ne;(0,0,0)] -> <strong>'+(isC2?'ACTIVADO':'falso')+'</strong>';
+  document.getElementById('propC3').innerHTML='C3: not C1/2 &and; [fRSV=1 &or; fCM&ge;3 &or; MC=5 &or; fRES=3] -> <strong>'+(isC3?'ACTIVADO':'falso')+'</strong>';
+  document.getElementById('propC4').innerHTML='C4: not C1/2/3 &and; [6&le;MC&le;7 &and; fRES=4] -> <strong>'+(isC4?'ACTIVADO':'falso')+'</strong>';
+  document.getElementById('propC5').innerHTML='C5: not C1/2/3/4 -> <strong>'+(isC5?'ACTIVADO (descarte)':'falso')+'</strong>';
+  ['flow-c1','flow-c2','flow-c3','flow-c4','flow-c5'].forEach(id => document.getElementById(id).className='flow-step');
+  if(isC1){document.getElementById('flow-c1').classList.add('passed');document.getElementById('flowExplicacion').innerHTML='<strong>Resultado: C1 (Riesgo Vital)</strong>';}
+  else{document.getElementById('flow-c1').classList.add('failed');
+    if(isC2){document.getElementById('flow-c2').classList.add('passed');document.getElementById('flowExplicacion').innerHTML='<strong>Resultado: C2 (Urgencia)</strong>';}
+    else{document.getElementById('flow-c2').classList.add('failed');
+      if(isC3){document.getElementById('flow-c3').classList.add('passed');document.getElementById('flowExplicacion').innerHTML='<strong>Resultado: C3 (Mediano Riesgo)</strong>';}
+      else{document.getElementById('flow-c3').classList.add('failed');
+        if(isC4){document.getElementById('flow-c4').classList.add('passed');document.getElementById('flowExplicacion').innerHTML='<strong>Resultado: C4 (Baja Complejidad)</strong>';}
+        else{document.getElementById('flow-c4').classList.add('failed');document.getElementById('flow-c5').classList.add('passed');document.getElementById('flowExplicacion').innerHTML='<strong>Resultado: C5 (No Urgente)</strong>';}}}}
+  const pg=document.getElementById('perinatalGroup');
+  if(g===1){pg.style.opacity='0.4';pg.style.pointerEvents='none';}else{pg.style.opacity='1';pg.style.pointerEvents='auto';}
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function cargarEjemplo() {
+  document.getElementById('genero').value='0';
+  document.getElementById('edad').value='7';
+  document.getElementById('fc').value='108';
+  document.getElementById('fr').value='24';
+  document.getElementById('spo2').value='96';
+  document.getElementById('tas').value='145';
+  document.getElementById('t').value='37.5';
+  document.getElementById('en').value='1';
+  document.getElementById('dolor').value='4';
+  document.getElementById('mc').value='7';
+  document.getElementById('recursos').value='2';
+  ['o1','o2','o3'].forEach(id => document.getElementById(id).checked = false);
+  document.querySelectorAll('#antecedentesGrid input').forEach((cb,i) => { cb.checked = (i===1 || i===9); });
+  evaluar();
+}
+
+function resetForm() {
+  document.getElementById('genero').value='0';
+  document.getElementById('edad').value='6';
+  document.getElementById('fc').value='80';
+  document.getElementById('fr').value='16';
+  document.getElementById('spo2').value='97';
+  document.getElementById('tas').value='120';
+  document.getElementById('t').value='36.5';
+  document.getElementById('en').value='1';
+  document.getElementById('dolor').value='4';
+  document.getElementById('mc').value='7';
+  document.getElementById('recursos').value='0';
+  ['o1','o2','o3'].forEach(id => document.getElementById(id).checked = false);
+  document.querySelectorAll('#antecedentesGrid input').forEach(cb => cb.checked = false);
+  document.getElementById('resultPanel').classList.remove('visible');
+  document.getElementById('perinatalBits').textContent='_ _ _';
+  document.getElementById('cmBits').textContent='________';
+  document.getElementById('resValor').textContent='_';
+  document.getElementById('rsvRiesgos').textContent='fc:_ tas:_ spo2:_ t:_';
+  document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+  ['mperResult','cmResult','msv2Result'].forEach(id => { const e=document.getElementById(id); e.textContent='Esperando evaluación...'; e.className='result-text'; });
+  document.getElementById('resSalida').textContent='Esperando...';
+  document.getElementById('resSalida').className='result-text';
+}
+
+document.addEventListener('DOMContentLoaded', () => { evaluar(); });
+</script>
+</body>
+</html>
